@@ -18,7 +18,7 @@ import com.schedulejs.ui.SettingsUiState
 fun SettingsScreen(state: SettingsUiState) {
     ScreenFrame(
         title = "Settings & Automation",
-        subtitle = "Phase 1 shows the control surfaces now so later phases only swap in real persistence and alarms."
+        subtitle = "Lead time, transit alerts, and template summaries now come from local persistence."
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SectionCard("Notification Lead Time") {

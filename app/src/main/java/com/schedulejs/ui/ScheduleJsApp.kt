@@ -9,7 +9,11 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -21,9 +25,17 @@ import com.schedulejs.ui.screens.ReviewScreen
 import com.schedulejs.ui.screens.SettingsScreen
 import com.schedulejs.ui.screens.StudyScreen
 import com.schedulejs.ui.screens.WorkoutScreen
+import com.schedulejs.ui.viewmodel.ScheduleJsViewModel
 
 @Composable
 fun ScheduleJsApp() {
+    val context = LocalContext.current.applicationContext
+    val viewModel: ScheduleJsViewModel = viewModel(factory = ScheduleJsViewModel.factory(context))
+    val dashboardState by viewModel.dashboardState.collectAsState()
+    val workoutState by viewModel.workoutState.collectAsState()
+    val studyState by viewModel.studyState.collectAsState()
+    val reviewState by viewModel.reviewState.collectAsState()
+    val settingsState by viewModel.settingsState.collectAsState()
     val navController = rememberNavController()
     val screens = listOf(
         AppScreen.Dashboard,
@@ -69,19 +81,19 @@ fun ScheduleJsApp() {
                 startDestination = AppScreen.Dashboard.route
             ) {
                 composable(AppScreen.Dashboard.route) {
-                    DashboardScreen(DemoData.dashboard)
+                    DashboardScreen(dashboardState)
                 }
                 composable(AppScreen.Workout.route) {
-                    WorkoutScreen(DemoData.workout)
+                    WorkoutScreen(workoutState)
                 }
                 composable(AppScreen.Study.route) {
-                    StudyScreen(DemoData.study)
+                    StudyScreen(studyState)
                 }
                 composable(AppScreen.Review.route) {
-                    ReviewScreen(DemoData.review)
+                    ReviewScreen(reviewState)
                 }
                 composable(AppScreen.Settings.route) {
-                    SettingsScreen(DemoData.settings)
+                    SettingsScreen(settingsState)
                 }
             }
         }

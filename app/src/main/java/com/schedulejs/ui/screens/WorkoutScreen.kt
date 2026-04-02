@@ -17,7 +17,7 @@ import com.schedulejs.ui.WorkoutUiState
 fun WorkoutScreen(state: WorkoutUiState) {
     ScreenFrame(
         title = "Workout Module",
-        subtitle = "Static routine content from the workout plan with the timer UX represented but not active yet."
+        subtitle = "Routine content now comes from the seeded weekly rotation for the current day."
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SectionCard("Today's Focus") {

@@ -16,7 +16,7 @@ import com.schedulejs.ui.StudyUiState
 fun StudyScreen(state: StudyUiState) {
     ScreenFrame(
         title = "Study Module",
-        subtitle = "The focus engine shell is wired to fixed subjects now so the UI contract stays stable later."
+        subtitle = "Study subjects now resolve by date while the timer UX stays parked for Phase 3."
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SectionCard("Today's Blocks") {

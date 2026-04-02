@@ -22,8 +22,8 @@ import com.schedulejs.ui.TimelineItemState
 @Composable
 fun DashboardScreen(state: DashboardUiState) {
     ScreenFrame(
-        title = "Thursday Dashboard",
-        subtitle = "A static HUD shell for Phase 1 that will switch to live schedule data in Phase 2."
+        title = "Dashboard",
+        subtitle = "Phase 2 now resolves the current day from the seeded schedule templates."
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SectionCard("Current Block") {

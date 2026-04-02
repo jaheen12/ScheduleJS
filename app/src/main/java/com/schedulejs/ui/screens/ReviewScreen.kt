@@ -13,7 +13,7 @@ import com.schedulejs.ui.ReviewUiState
 fun ReviewScreen(state: ReviewUiState) {
     ScreenFrame(
         title = "Friday Review",
-        subtitle = "Locked/unlocked states are both represented; Phase 4 will connect the real Friday 15:30 rule."
+        subtitle = "Phase 2 resolves the real Friday 15:30 unlock state from local time."
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SectionCard("Status") {
