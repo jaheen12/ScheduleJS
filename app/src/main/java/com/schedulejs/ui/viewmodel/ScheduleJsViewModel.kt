@@ -288,6 +288,6 @@ private fun Int.toDurationLabel(): String {
     return when {
         hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
         hours > 0 -> "${hours}h"
-        else -> "${minutes.roundToInt()}m"
+        else -> "${minutes}m"
     }
 }
