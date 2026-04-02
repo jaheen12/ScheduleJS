@@ -42,6 +42,11 @@ interface SettingsRepository {
     fun observeSettings(): Flow<AppSettings>
 }
 
+interface InteractiveStateRepository {
+    suspend fun isWorkoutComplete(date: LocalDate): Boolean
+    suspend fun setWorkoutComplete(date: LocalDate, isComplete: Boolean)
+}
+
 class OfflineScheduleRepository(
     private val database: ScheduleDatabase,
     private val seedData: SeedData
@@ -164,6 +169,26 @@ class OfflineSettingsRepository(
                 )
             }
         }
+    }
+}
+
+class OfflineInteractiveStateRepository(
+    private val database: ScheduleDatabase,
+    private val seedData: SeedData
+) : InteractiveStateRepository {
+    override suspend fun isWorkoutComplete(date: LocalDate): Boolean {
+        seedData.seedIfNeeded()
+        return database.dailyProgressDao().getForDate(date.toString())?.isWorkoutComplete ?: false
+    }
+
+    override suspend fun setWorkoutComplete(date: LocalDate, isComplete: Boolean) {
+        seedData.seedIfNeeded()
+        database.dailyProgressDao().upsert(
+            com.schedulejs.data.local.DailyProgressEntity(
+                date = date.toString(),
+                isWorkoutComplete = isComplete
+            )
+        )
     }
 }
 

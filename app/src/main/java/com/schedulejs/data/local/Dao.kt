@@ -65,3 +65,36 @@ interface AppSettingsDao {
     @Query("SELECT * FROM app_settings WHERE id = 1")
     fun observeSettings(): Flow<AppSettingsEntity?>
 }
+
+@Dao
+interface DailyProgressDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(progress: DailyProgressEntity)
+
+    @Query("SELECT * FROM daily_progress WHERE date = :date LIMIT 1")
+    suspend fun getForDate(date: String): DailyProgressEntity?
+}
+
+@Dao
+interface FocusTimerDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(state: FocusTimerStateEntity)
+
+    @Query("SELECT * FROM focus_timer_state WHERE id = 1")
+    suspend fun get(): FocusTimerStateEntity?
+
+    @Query("DELETE FROM focus_timer_state WHERE id = 1")
+    suspend fun clear()
+}
+
+@Dao
+interface BellyRoutineDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(state: BellyRoutineStateEntity)
+
+    @Query("SELECT * FROM belly_routine_state WHERE id = 1")
+    suspend fun get(): BellyRoutineStateEntity?
+
+    @Query("DELETE FROM belly_routine_state WHERE id = 1")
+    suspend fun clear()
+}

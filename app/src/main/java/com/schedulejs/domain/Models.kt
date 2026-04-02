@@ -74,6 +74,34 @@ data class WorkoutPlan(
     val bellyRoutineSteps: List<String>
 )
 
+enum class TimerStatus {
+    IDLE,
+    RUNNING,
+    PAUSED,
+    COMPLETED
+}
+
+data class DashboardSnapshot(
+    val currentTask: ScheduleTask?,
+    val nextTask: ScheduleTask?,
+    val progressPercent: Float
+)
+
+data class FocusTimerSession(
+    val status: TimerStatus,
+    val totalDurationSeconds: Int,
+    val remainingSeconds: Int,
+    val enableDnd: Boolean
+)
+
+data class BellyRoutineSession(
+    val status: TimerStatus,
+    val totalDurationSeconds: Int,
+    val remainingSeconds: Int,
+    val currentStepIndex: Int,
+    val stepRemainingSeconds: Int
+)
+
 data class ReviewLog(
     val completedAt: LocalDate,
     val summary: String

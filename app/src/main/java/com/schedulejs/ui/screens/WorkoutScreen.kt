@@ -14,10 +14,15 @@ import androidx.compose.ui.unit.dp
 import com.schedulejs.ui.WorkoutUiState
 
 @Composable
-fun WorkoutScreen(state: WorkoutUiState) {
+fun WorkoutScreen(
+    state: WorkoutUiState,
+    onBellyRoutineAction: () -> Unit,
+    onCancelBellyRoutine: () -> Unit,
+    onToggleWorkoutComplete: () -> Unit
+) {
     ScreenFrame(
         title = "Workout Module",
-        subtitle = "Routine content now comes from the seeded weekly rotation for the current day."
+        subtitle = "Phase 3 adds a live belly routine timer and persists workout completion for the day."
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SectionCard("Today's Focus") {
@@ -30,8 +35,17 @@ fun WorkoutScreen(state: WorkoutUiState) {
                     text = "Purpose-built bodyweight plan for the current day.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Button(onClick = {}, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = state.bellyRoutineState.statusLabel,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Button(onClick = onBellyRoutineAction, modifier = Modifier.fillMaxWidth()) {
                     Text(state.bellyRoutineState.ctaLabel)
+                }
+                state.bellyRoutineState.secondaryCtaLabel?.let { secondaryLabel ->
+                    OutlinedButton(onClick = onCancelBellyRoutine, modifier = Modifier.fillMaxWidth()) {
+                        Text(secondaryLabel)
+                    }
                 }
                 state.bellyRoutineState.steps.forEach { step ->
                     EmptyStatePill(step)
@@ -53,7 +67,7 @@ fun WorkoutScreen(state: WorkoutUiState) {
                 }
             }
 
-            OutlinedButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = onToggleWorkoutComplete, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     if (state.isWorkoutComplete) "Workout Completed" else "Mark Workout Complete"
                 )

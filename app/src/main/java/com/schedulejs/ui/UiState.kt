@@ -60,13 +60,16 @@ data class RoutineItem(
 
 data class BellyRoutineState(
     val ctaLabel: String,
-    val steps: List<String>
+    val steps: List<String>,
+    val statusLabel: String = "",
+    val secondaryCtaLabel: String? = null
 )
 
 data class FocusTimerState(
     val ctaLabel: String,
     val durationLabel: String,
-    val statusLabel: String
+    val statusLabel: String,
+    val secondaryCtaLabel: String? = null
 )
 
 data class ReviewQuestion(

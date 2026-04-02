@@ -75,3 +75,30 @@ data class AppSettingsEntity(
     val notificationLeadTime: String,
     val transitAlertsEnabled: Boolean
 )
+
+@Entity(tableName = "daily_progress")
+data class DailyProgressEntity(
+    @PrimaryKey val date: String,
+    val isWorkoutComplete: Boolean
+)
+
+@Entity(tableName = "focus_timer_state")
+data class FocusTimerStateEntity(
+    @PrimaryKey val id: Int = 1,
+    val totalDurationSeconds: Int,
+    val remainingSeconds: Int,
+    val isRunning: Boolean,
+    val isCompleted: Boolean,
+    val startedAtEpochMillis: Long?,
+    val enableDnd: Boolean
+)
+
+@Entity(tableName = "belly_routine_state")
+data class BellyRoutineStateEntity(
+    @PrimaryKey val id: Int = 1,
+    val accumulatedElapsedSeconds: Int,
+    val isRunning: Boolean,
+    val isCompleted: Boolean,
+    val startedAtEpochMillis: Long?,
+    val lastCueStepIndex: Int
+)

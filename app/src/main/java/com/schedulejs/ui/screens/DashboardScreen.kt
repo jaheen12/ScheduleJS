@@ -23,7 +23,7 @@ import com.schedulejs.ui.TimelineItemState
 fun DashboardScreen(state: DashboardUiState) {
     ScreenFrame(
         title = "Dashboard",
-        subtitle = "Phase 2 now resolves the current day from the seeded schedule templates."
+        subtitle = "Phase 3 keeps the HUD live against device time and active timers."
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             SectionCard("Current Block") {

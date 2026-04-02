@@ -84,10 +84,19 @@ fun ScheduleJsApp() {
                     DashboardScreen(dashboardState)
                 }
                 composable(AppScreen.Workout.route) {
-                    WorkoutScreen(workoutState)
+                    WorkoutScreen(
+                        state = workoutState,
+                        onBellyRoutineAction = viewModel::onBellyRoutineAction,
+                        onCancelBellyRoutine = viewModel::cancelBellyRoutine,
+                        onToggleWorkoutComplete = viewModel::toggleWorkoutComplete
+                    )
                 }
                 composable(AppScreen.Study.route) {
-                    StudyScreen(studyState)
+                    StudyScreen(
+                        state = studyState,
+                        onFocusTimerAction = viewModel::onFocusTimerAction,
+                        onCancelFocusTimer = viewModel::cancelFocusTimer
+                    )
                 }
                 composable(AppScreen.Review.route) {
                     ReviewScreen(reviewState)
