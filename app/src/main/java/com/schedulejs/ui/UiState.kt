@@ -2,6 +2,7 @@ package com.schedulejs.ui
 
 data class DashboardUiState(
     val dateLabel: String,
+    val dayType: String = "",
     val currentTask: TaskSnapshot,
     val nextTask: TaskSnapshot,
     val progressPercent: Float,
@@ -44,14 +45,16 @@ data class SettingsUiState(
 data class TaskSnapshot(
     val title: String,
     val timeLabel: String,
-    val subtitle: String
+    val subtitle: String,
+    val category: String = ""
 )
 
 data class TimelineItem(
     val timeLabel: String,
     val title: String,
     val detail: String,
-    val state: TimelineItemState
+    val state: TimelineItemState,
+    val category: String = ""
 )
 
 enum class TimelineItemState {

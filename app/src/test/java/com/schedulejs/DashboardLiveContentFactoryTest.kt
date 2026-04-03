@@ -72,6 +72,30 @@ class DashboardLiveContentFactoryTest {
         assertEquals(100, content.progressPercentInt)
     }
 
+    @Test
+    fun includesSecondLevelCountdownForSubMinuteRemainingTime() {
+        val quickTask = task(
+            id = 1L,
+            title = "Quick Reset",
+            startMinuteOfDay = 8 * 60,
+            endMinuteOfDay = 8 * 60 + 1
+        )
+        val schedule = TodaySchedule(
+            date = LocalDate.of(2026, 4, 3),
+            dayType = DayType.OFFICE_DAY,
+            tasks = listOf(quickTask)
+        )
+
+        val content = DashboardLiveContentFactory.create(
+            schedule = schedule,
+            snapshot = DashboardSnapshot(currentTask = quickTask, nextTask = null, progressPercent = 0f),
+            now = LocalDateTime.of(2026, 4, 3, 8, 0, 30)
+        )
+
+        assertEquals("Remaining: 30s", content.currentSubtitle)
+        assertEquals(50, content.progressPercentInt)
+    }
+
     private fun task(
         id: Long,
         title: String,

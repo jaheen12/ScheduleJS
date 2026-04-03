@@ -32,6 +32,7 @@ import com.schedulejs.domain.NotificationLeadTime
 import com.schedulejs.domain.ReviewEntryDraft
 import com.schedulejs.domain.StudyBlock
 import com.schedulejs.domain.StudyBlockType
+import com.schedulejs.domain.TaskCategory
 import com.schedulejs.domain.TimerStatus
 import com.schedulejs.domain.TodaySchedule
 import com.schedulejs.domain.WorkoutPlan
@@ -64,6 +65,7 @@ import com.schedulejs.ui.TimelineItem
 import com.schedulejs.ui.TimelineItemState
 import com.schedulejs.ui.WorkoutUiState
 import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.delay
@@ -318,14 +320,14 @@ class ScheduleJsViewModel(
     private fun startTicker() {
         viewModelScope.launch {
             while (isActive) {
-                syncUi()
+                syncUi(clock.millis())
                 delay(1_000)
             }
         }
     }
 
-    private suspend fun syncUi() {
-        val now = LocalDateTime.now(clock)
+    private suspend fun syncUi(nowEpochMillis: Long = clock.millis()) {
+        val now = LocalDateTime.ofInstant(Instant.ofEpochMilli(nowEpochMillis), clock.zone)
         ensureStaticDataLoaded(now.toLocalDate())
 
         val schedule = loadedSchedule ?: return
@@ -604,32 +606,38 @@ private fun TodaySchedule.toDashboardUiState(
     now: LocalDateTime
 ): DashboardUiState {
     val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("EEEE, MMMM d")
-    val timeFormatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+
+    // Helper to capitalize enum names for icon lookup or display
+    fun TaskCategory.toDisplay(): String = name.lowercase().replaceFirstChar { it.uppercase() }
 
     return DashboardUiState(
-        dateLabel = "${now.format(dateFormatter)} • ${now.format(timeFormatter)}",
+        dateLabel = now.format(dateFormatter),
+        dayType = dayType.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() },
         currentTask = TaskSnapshot(
             title = liveContent.currentTitle,
             timeLabel = liveContent.currentTimeLabel,
-            subtitle = liveContent.currentSubtitle
+            subtitle = liveContent.currentSubtitle,
+            category = liveContent.currentTaskCategory?.toDisplay() ?: ""
         ),
         nextTask = TaskSnapshot(
             title = liveContent.nextTitle,
             timeLabel = liveContent.nextTimeLabel,
-            subtitle = liveContent.nextSubtitle
+            subtitle = liveContent.nextSubtitle,
+            category = liveContent.nextTaskCategory?.toDisplay() ?: ""
         ),
         progressPercent = liveContent.progressPercent,
         timelineItems = tasks.map { task ->
             val state = when {
-                now.minuteOfDay() >= task.endMinuteOfDay -> TimelineItemState.PAST
-                now.minuteOfDay() in task.startMinuteOfDay until task.endMinuteOfDay -> TimelineItemState.CURRENT
+                now.toLocalTime().toSecondOfDay() / 60 >= task.endMinuteOfDay -> TimelineItemState.PAST
+                now.toLocalTime().toSecondOfDay() / 60 >= task.startMinuteOfDay -> TimelineItemState.CURRENT
                 else -> TimelineItemState.UPCOMING
             }
             TimelineItem(
                 timeLabel = "${task.startMinuteOfDay.toClockLabel()} - ${task.endMinuteOfDay.toClockLabel()}",
                 title = task.title,
                 detail = task.details,
-                state = state
+                state = state,
+                category = task.category.toDisplay()
             )
         }
     )

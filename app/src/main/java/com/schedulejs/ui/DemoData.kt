@@ -2,6 +2,8 @@ package com.schedulejs.ui
 
 object DemoData {
     val dashboard = DashboardUiState(
+        dateLabel = "Thursday, April 3",
+        dayType = "Class Day",
         currentTask = TaskSnapshot(
             title = "Office",
             timeLabel = "14:00 - 17:40",
@@ -14,16 +16,16 @@ object DemoData {
         ),
         progressPercent = 0.68f,
         timelineItems = listOf(
-            TimelineItem("06:30", "Wake + Belly Routine", "Water, wake-up, 5-minute core reset.", TimelineItemState.PAST),
-            TimelineItem("06:40 - 07:20", "Main Workout", "Leg day block for class-day energy.", TimelineItemState.PAST),
-            TimelineItem("07:30 - 08:30", "Morning Study", "NU board questions only, no passive reading.", TimelineItemState.PAST),
-            TimelineItem("09:15", "Transit to College", "Leave by bicycle for the 09:45 class buffer.", TimelineItemState.PAST),
-            TimelineItem("12:45 - 13:40", "College Return + Sprint", "Ride home, lunch, switch gear, leave again.", TimelineItemState.PAST),
-            TimelineItem("14:00 - 17:40", "Office", "Focused work block at Visiwave.", TimelineItemState.CURRENT),
-            TimelineItem("18:07", "Transit to Tuition", "Fast reset at home, then depart.", TimelineItemState.UPCOMING),
-            TimelineItem("19:30 - 20:10", "Tuition Prep", "Non-negotiable prep window.", TimelineItemState.UPCOMING),
-            TimelineItem("20:45 - 21:25", "Evening Study", "Lighter subjects and recap work.", TimelineItemState.UPCOMING),
-            TimelineItem("21:25 - 23:00", "Prepare Tomorrow", "Clothes, lunch, bag, then free time.", TimelineItemState.UPCOMING)
+            TimelineItem("06:30", "Wake + Belly Routine", "Water, wake-up, 5-minute core reset.", TimelineItemState.PAST, "Routine"),
+            TimelineItem("06:40 - 07:20", "Main Workout", "Leg day block for class-day energy.", TimelineItemState.PAST, "Workout"),
+            TimelineItem("07:30 - 08:30", "Morning Study", "NU board questions only, no passive reading.", TimelineItemState.PAST, "Study"),
+            TimelineItem("09:15", "Transit to College", "Leave by bicycle for the 09:45 class buffer.", TimelineItemState.PAST, "Transit"),
+            TimelineItem("12:45 - 13:40", "College Return + Sprint", "Ride home, lunch, switch gear, leave again.", TimelineItemState.PAST, "College"),
+            TimelineItem("14:00 - 17:40", "Office", "Focused work block at Visiwave.", TimelineItemState.CURRENT, "Office"),
+            TimelineItem("18:07", "Transit to Tuition", "Fast reset at home, then depart.", TimelineItemState.UPCOMING, "Transit"),
+            TimelineItem("19:30 - 20:10", "Tuition Prep", "Non-negotiable prep window.", TimelineItemState.UPCOMING, "Tuition"),
+            TimelineItem("20:45 - 21:25", "Evening Study", "Lighter subjects and recap work.", TimelineItemState.UPCOMING, "Study"),
+            TimelineItem("21:25 - 23:00", "Prepare Tomorrow", "Clothes, lunch, bag, then free time.", TimelineItemState.UPCOMING, "Prep")
         )
     )
 
