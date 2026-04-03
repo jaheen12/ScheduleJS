@@ -23,19 +23,20 @@ import com.schedulejs.domain.DashboardSnapshot
 import com.schedulejs.domain.DayType
 import com.schedulejs.domain.FocusTimerSession
 import com.schedulejs.domain.NotificationLeadTime
-import com.schedulejs.domain.ScheduleTask
 import com.schedulejs.domain.StudyBlock
 import com.schedulejs.domain.StudyBlockType
 import com.schedulejs.domain.TimerStatus
 import com.schedulejs.domain.TodaySchedule
 import com.schedulejs.domain.WorkoutPlan
 import com.schedulejs.services.DefaultTimeEngine
+import com.schedulejs.services.DashboardLiveContentFactory
 import com.schedulejs.services.FocusTimerController
 import com.schedulejs.services.RoomFocusTimerController
 import com.schedulejs.services.RoomRoutineTimerController
 import com.schedulejs.services.RoutineTimerController
 import com.schedulejs.services.TimeEngine
 import com.schedulejs.services.ToneRoutineCuePlayer
+import com.schedulejs.services.toClockLabel
 import com.schedulejs.ui.BellyRoutineState
 import com.schedulejs.ui.DashboardUiState
 import com.schedulejs.ui.FocusTimerState
@@ -312,11 +313,20 @@ private fun TodaySchedule.toDashboardUiState(
     snapshot: DashboardSnapshot,
     now: LocalDateTime
 ): DashboardUiState {
+    val liveContent = DashboardLiveContentFactory.create(this, snapshot, now)
     val nowMinute = now.hour * 60 + now.minute
     return DashboardUiState(
-        currentTask = snapshot.currentTask.toCurrentSnapshot(nowMinute, snapshot.currentTask != null && nowMinute < (snapshot.currentTask?.endMinuteOfDay ?: 0)),
-        nextTask = snapshot.nextTask.toNextSnapshot(),
-        progressPercent = snapshot.progressPercent,
+        currentTask = TaskSnapshot(
+            title = liveContent.currentTitle,
+            timeLabel = liveContent.currentTimeLabel,
+            subtitle = liveContent.currentSubtitle
+        ),
+        nextTask = TaskSnapshot(
+            title = liveContent.nextTitle,
+            timeLabel = liveContent.nextTimeLabel,
+            subtitle = liveContent.nextSubtitle
+        ),
+        progressPercent = liveContent.progressPercent,
         timelineItems = tasks.map { task ->
             val state = when {
                 nowMinute >= task.endMinuteOfDay -> TimelineItemState.PAST
@@ -409,59 +419,6 @@ private fun List<StudyBlock>.toStudyUiState(
         ),
         reminderText = morningBlock?.notes ?: "Solve board questions first."
     )
-}
-
-private fun ScheduleTask?.toCurrentSnapshot(nowMinute: Int, isLive: Boolean): TaskSnapshot {
-    if (this == null) {
-        return TaskSnapshot(
-            title = "No active block",
-            timeLabel = "--",
-            subtitle = "Waiting for the first task of the day."
-        )
-    }
-    val remainingMinutes = (endMinuteOfDay - nowMinute).coerceAtLeast(0)
-    return TaskSnapshot(
-        title = title,
-        timeLabel = "${startMinuteOfDay.toClockLabel()} - ${endMinuteOfDay.toClockLabel()}",
-        subtitle = if (isLive) {
-            "Remaining: ${remainingMinutes.toMinuteDurationLabel()}"
-        } else {
-            "Current block resolved from today's template."
-        }
-    )
-}
-
-private fun ScheduleTask?.toNextSnapshot(): TaskSnapshot {
-    return if (this == null) {
-        TaskSnapshot(
-            title = "No further blocks today",
-            timeLabel = "--",
-            subtitle = "End of schedule."
-        )
-    } else {
-        TaskSnapshot(
-            title = title,
-            timeLabel = startMinuteOfDay.toClockLabel(),
-            subtitle = details
-        )
-    }
-}
-
-private fun Int.toClockLabel(): String {
-    val hours = this / 60
-    val minutes = this % 60
-    return "%02d:%02d".format(hours, minutes)
-}
-
-private fun Int.toMinuteDurationLabel(): String {
-    val totalMinutes = this.coerceAtLeast(0)
-    val hours = totalMinutes / 60
-    val minutes = totalMinutes % 60
-    return when {
-        hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
-        hours > 0 -> "${hours}h"
-        else -> "${minutes}m"
-    }
 }
 
 private fun Int.toTimerDurationLabel(): String {

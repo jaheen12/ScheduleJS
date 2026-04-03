@@ -19,4 +19,9 @@
     <string name="night_checklist_lunch">Lunch prepped</string>
     <string name="night_checklist_bag">Bag packed</string>
     <string name="night_checklist_complete">Checklist Complete</string>
+    <string name="widget_title">SCHEDULEJS LIVE HUD</string>
+    <string name="widget_description">Home screen widget showing the current and next ScheduleJS blocks.</string>
+    <string name="widget_current_label">CURRENT</string>
+    <string name="widget_next_label">NEXT</string>
+    <string name="widget_progress_value">%1$d%% of current block</string>
 </resources>

@@ -24,6 +24,7 @@ import com.schedulejs.domain.TodaySchedule
 import com.schedulejs.receivers.NightChecklistReceiver
 import com.schedulejs.receivers.ReminderReceiver
 import com.schedulejs.receivers.SystemEventReceiver
+import com.schedulejs.widgets.ScheduleHomeWidgetUpdater
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -47,6 +48,7 @@ object ScheduleAutomationCoordinator {
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             ReminderScheduler(appContext).scheduleDailyReminders()
+            ScheduleHomeWidgetUpdater.updateAll(appContext)
         }
     }
 }
@@ -240,8 +242,10 @@ class PersistentStatusService : Service() {
         val now = LocalDateTime.now(clock)
         val schedule = scheduleRepository.getTodaySchedule(now.toLocalDate())
         val snapshot = timeEngine.getDashboardSnapshot(schedule, now)
+        val content = DashboardLiveContentFactory.create(schedule, snapshot, now)
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(NOTIFICATION_ID, buildStatusNotification(snapshot, now))
+        manager.notify(NOTIFICATION_ID, buildStatusNotification(content))
+        ScheduleHomeWidgetUpdater.updateAll(this, clock)
     }
 
     private fun placeholderNotification(): Notification {
@@ -254,25 +258,9 @@ class PersistentStatusService : Service() {
             .build()
     }
 
-    private fun buildStatusNotification(
-        snapshot: com.schedulejs.domain.DashboardSnapshot,
-        now: LocalDateTime
-    ): Notification {
-        val current = snapshot.currentTask
-        val next = snapshot.nextTask
-        val nowMinute = now.hour * 60 + now.minute
-        val currentText = if (current == null) {
-            "No active block right now."
-        } else {
-            val remaining = (current.endMinuteOfDay - nowMinute).coerceAtLeast(0)
-            "Currently: ${current.title}. ${remaining.toMinuteDurationLabel()} left."
-        }
-        val nextText = if (next == null) {
-            "No further blocks today."
-        } else {
-            "Next: ${next.title} at ${next.startMinuteOfDay.toClockLabel()}."
-        }
-
+    private fun buildStatusNotification(content: DashboardLiveContent): Notification {
+        val currentText = "Current: ${content.currentSentence()}."
+        val nextText = "Next: ${content.nextSentence()}."
         return NotificationCompat.Builder(this, NotificationChannels.STATUS_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentTitle(getString(R.string.notification_status_title))
@@ -296,22 +284,5 @@ class PersistentStatusService : Service() {
 
     companion object {
         private const val NOTIFICATION_ID = 2001
-    }
-}
-
-private fun Int.toClockLabel(): String {
-    val hours = this / 60
-    val minutes = this % 60
-    return "%02d:%02d".format(hours, minutes)
-}
-
-private fun Int.toMinuteDurationLabel(): String {
-    val totalMinutes = this.coerceAtLeast(0)
-    val hours = totalMinutes / 60
-    val minutes = totalMinutes % 60
-    return when {
-        hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
-        hours > 0 -> "${hours}h"
-        else -> "${minutes}m"
     }
 }
