@@ -22,10 +22,15 @@ data class WorkoutUiState(
 )
 
 data class StudyUiState(
-    val morningSubject: String,
-    val eveningSubject: String,
+    val morningBlock: StudyBlockUiState?,
+    val eveningBlock: StudyBlockUiState?,
     val focusTimerState: FocusTimerState,
-    val reminderText: String
+    val reminderText: String,
+    val dayLabel: String,
+    val templateLabel: String,
+    val isFreeDay: Boolean,
+    val tomorrowBlock: TomorrowStudyPreview?,
+    val focusSessionHistory: FocusSessionHistory?
 )
 
 data class ReviewUiState(
@@ -114,11 +119,35 @@ data class FocusTimerState(
     val ctaLabel: String,
     val durationLabel: String,
     val statusLabel: String,
+    val totalSeconds: Int,
     val secondaryCtaLabel: String? = null,
     val isDndEnabled: Boolean = false,
     val isDndPermissionGranted: Boolean = false,
     val dndStatusLabel: String = "",
     val dndPermissionCtaLabel: String? = null
+)
+
+data class StudyBlockUiState(
+    val timeLabel: String,
+    val subject: String,
+    val category: String,
+    val difficultyLabel: String,
+    val durationMinutes: Int,
+    val emoji: String,
+    val isActive: Boolean
+)
+
+data class TomorrowStudyPreview(
+    val dayLabel: String,
+    val morningSubject: String,
+    val morningDuration: Int,
+    val eveningSubject: String?,
+    val eveningDuration: Int?
+)
+
+data class FocusSessionHistory(
+    val sessionsToday: Int,
+    val totalMinutesToday: Int
 )
 
 data class ReviewQuestion(

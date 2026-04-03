@@ -52,6 +52,7 @@ import com.schedulejs.ui.DashboardUiState
 import com.schedulejs.ui.EditableTaskUiState
 import com.schedulejs.ui.EditableTemplateUiState
 import com.schedulejs.ui.FocusTimerState
+import com.schedulejs.ui.FocusSessionHistory
 import com.schedulejs.ui.PermissionEducationCardUiState
 import com.schedulejs.ui.ReviewAnswerDraft
 import com.schedulejs.ui.ReviewHistoryItem
@@ -60,11 +61,13 @@ import com.schedulejs.ui.ReviewUiState
 import com.schedulejs.ui.RoutineItem
 import com.schedulejs.ui.SettingsUiState
 import com.schedulejs.ui.StepType
+import com.schedulejs.ui.StudyBlockUiState
 import com.schedulejs.ui.StudyUiState
 import com.schedulejs.ui.TaskSnapshot
 import com.schedulejs.ui.TemplateSummary
 import com.schedulejs.ui.TimelineItem
 import com.schedulejs.ui.TimelineItemState
+import com.schedulejs.ui.TomorrowStudyPreview
 import com.schedulejs.ui.WeeklyWorkoutDay
 import com.schedulejs.ui.WorkoutUiState
 import java.time.Clock
@@ -112,6 +115,7 @@ class ScheduleJsViewModel(
     private var loadedSchedule: TodaySchedule? = null
     private var loadedWorkout: WorkoutPlan? = null
     private var loadedStudyBlocks: List<StudyBlock> = emptyList()
+    private var loadedTomorrowStudyBlocks: List<StudyBlock> = emptyList()
     private var loadedTemplateSummaries: List<TemplateSummary> = emptyList()
     private var editableTemplates: List<DayTemplateDraft> = emptyList()
     private var focusModeEnabled = false
@@ -129,6 +133,10 @@ class ScheduleJsViewModel(
     private var weeklyWorkoutDaysCache: List<WeeklyWorkoutDay> = emptyList()
     private var weeklyWorkoutStreakCache: Int = 0
     private var isWorkoutWeekDirty: Boolean = true
+    private var focusHistoryDate: LocalDate? = null
+    private var focusSessionsToday: Int = 0
+    private var focusMinutesToday: Int = 0
+    private var lastFocusStatus: TimerStatus = TimerStatus.IDLE
 
     init {
         observeSettings()
@@ -156,9 +164,16 @@ class ScheduleJsViewModel(
 
     fun onFocusTimerAction() {
         viewModelScope.launch {
-            val durationMinutes = defaultFocusDurationMinutes(loadedSchedule?.dayType ?: DayType.CLASS_DAY)
+            val sessionState = focusTimerController.getState()
+            val durationMinutes = studyFocusDurationMinutes(
+                dayType = loadedSchedule?.dayType ?: DayType.CLASS_DAY,
+                studyBlocks = loadedStudyBlocks
+            )
+            if ((sessionState.status == TimerStatus.IDLE || sessionState.status == TimerStatus.COMPLETED) && durationMinutes <= 0) {
+                return@launch
+            }
             val shouldEnableDnd = focusModeEnabled && focusModeController.hasNotificationPolicyAccess()
-            when (focusTimerController.getState().status) {
+            when (sessionState.status) {
                 TimerStatus.IDLE,
                 TimerStatus.COMPLETED -> focusTimerController.start(durationMinutes, enableDnd = shouldEnableDnd)
                 TimerStatus.RUNNING -> focusTimerController.pause()
@@ -415,6 +430,7 @@ class ScheduleJsViewModel(
         val schedule = loadedSchedule ?: return
         val workout = loadedWorkout ?: return
         val focusSession = focusTimerController.getState()
+        updateFocusHistory(now.toLocalDate(), focusSession)
         val bellySession = routineTimerController.getState()
         val bellySteps = workout.bellyRoutineSteps.map(::parseBellyRoutineStep)
         val activeStep = bellySteps.getOrNull(bellySession.currentStepIndex)
@@ -452,10 +468,17 @@ class ScheduleJsViewModel(
             repsCompleted = bellyStepRepProgress
         )
         _studyState.value = loadedStudyBlocks.toStudyUiState(
+            date = now.toLocalDate(),
+            now = now,
             dayType = schedule.dayType,
             focusSession = focusSession,
             focusModeEnabled = focusModeEnabled,
-            dndAccessGranted = dndAccessGranted
+            dndAccessGranted = dndAccessGranted,
+            tomorrowBlocks = loadedTomorrowStudyBlocks,
+            focusSessionHistory = FocusSessionHistory(
+                sessionsToday = focusSessionsToday,
+                totalMinutesToday = focusMinutesToday
+            )
         )
         _reviewState.value = ReviewUiState(
             isUnlocked = review.isUnlocked,
@@ -486,10 +509,25 @@ class ScheduleJsViewModel(
         bellyStepRepProgress = 0
         isWorkoutWeekDirty = true
         loadedStudyBlocks = studyRepository.getStudyBlocksForDate(date)
+        loadedTomorrowStudyBlocks = studyRepository.getStudyBlocksForDate(date.plusDays(1))
         loadedTemplateSummaries = scheduleRepository.getTemplateSummaries().map {
             TemplateSummary(it.first, it.second)
         }
         editableTemplates = scheduleRepository.getEditableTemplates()
+    }
+
+    private fun updateFocusHistory(date: LocalDate, focusSession: FocusTimerSession) {
+        if (focusHistoryDate != date) {
+            focusHistoryDate = date
+            focusSessionsToday = 0
+            focusMinutesToday = 0
+            lastFocusStatus = TimerStatus.IDLE
+        }
+        if (focusSession.status == TimerStatus.COMPLETED && lastFocusStatus != TimerStatus.COMPLETED) {
+            focusSessionsToday += 1
+            focusMinutesToday += (focusSession.totalDurationSeconds / 60).coerceAtLeast(0)
+        }
+        lastFocusStatus = focusSession.status
     }
 
     private fun observeSettings() {
@@ -645,15 +683,24 @@ class ScheduleJsViewModel(
 
         private fun loadingStudyState(): StudyUiState {
             return StudyUiState(
-                morningSubject = "Loading",
-                eveningSubject = "Loading",
+                morningBlock = null,
+                eveningBlock = null,
                 focusTimerState = FocusTimerState(
                     ctaLabel = "Enter Deep Work",
                     durationLabel = "--",
                     statusLabel = "Loading timer state.",
+                    totalSeconds = 0,
                     dndStatusLabel = "Checking Do Not Disturb access."
                 ),
-                reminderText = "Loading study notes."
+                reminderText = "Loading study notes.",
+                dayLabel = "Loading",
+                templateLabel = "Loading study template",
+                isFreeDay = false,
+                tomorrowBlock = null,
+                focusSessionHistory = FocusSessionHistory(
+                    sessionsToday = 0,
+                    totalMinutesToday = 0
+                )
             )
         }
 
@@ -820,29 +867,76 @@ private fun WorkoutPlan.toWorkoutUiState(
 }
 
 private fun List<StudyBlock>.toStudyUiState(
+    date: LocalDate,
+    now: LocalDateTime,
     dayType: DayType,
     focusSession: FocusTimerSession,
     focusModeEnabled: Boolean,
-    dndAccessGranted: Boolean
+    dndAccessGranted: Boolean,
+    tomorrowBlocks: List<StudyBlock>,
+    focusSessionHistory: FocusSessionHistory
 ): StudyUiState {
     val morning = firstOrNull { it.blockType == StudyBlockType.MORNING }
     val evening = firstOrNull { it.blockType == StudyBlockType.EVENING }
+    val nowMinute = now.hour * 60 + now.minute
+    val morningBlock = morning?.toUiBlock(dayType, nowMinute)
+    val eveningBlock = evening?.toUiBlock(dayType, nowMinute)
+    val presetMinutes = studyFocusDurationMinutes(dayType, this)
+    val totalSeconds = when (focusSession.status) {
+        TimerStatus.IDLE -> presetMinutes * 60
+        else -> focusSession.totalDurationSeconds
+    }
+    val displaySeconds = when (focusSession.status) {
+        TimerStatus.IDLE -> totalSeconds
+        else -> focusSession.remainingSeconds
+    }
+    val isFreeDay = dayType == DayType.FRIDAY || (morningBlock == null && eveningBlock == null)
+
+    val reminder = listOfNotNull(
+        morning?.notes?.takeIf { it.isNotBlank() },
+        evening?.notes?.takeIf { it.isNotBlank() }
+    ).joinToString(" ").ifBlank {
+        "Solve board questions first. Reading is not the session."
+    }
+
+    val tomorrowMorning = tomorrowBlocks.firstOrNull { it.blockType == StudyBlockType.MORNING }
+    val tomorrowEvening = tomorrowBlocks.firstOrNull { it.blockType == StudyBlockType.EVENING }
+    val tomorrowDayOfWeek = tomorrowMorning?.dayOfWeek ?: tomorrowEvening?.dayOfWeek ?: date.plusDays(1).dayOfWeek
+    val tomorrowDayType = tomorrowDayOfWeek.toDayType()
+    val tomorrowMorningDuration = tomorrowMorning?.let {
+        durationMinutesForBlock(tomorrowDayType, it.blockType, it.subject)
+    } ?: 0
+    val tomorrowEveningDuration = tomorrowEvening?.let {
+        durationMinutesForBlock(tomorrowDayType, it.blockType, it.subject)
+    } ?: 0
+    val tomorrowPreview = TomorrowStudyPreview(
+        dayLabel = "Tomorrow - ${tomorrowDayOfWeek.displayName()} (${tomorrowDayType.label()})",
+        morningSubject = tomorrowMorning?.subject ?: "FREE",
+        morningDuration = tomorrowMorningDuration,
+        eveningSubject = tomorrowEvening?.subject?.takeUnless(::isFreeSubject),
+        eveningDuration = tomorrowEveningDuration.takeIf { it > 0 }
+    )
+
     return StudyUiState(
-        morningSubject = morning?.subject ?: "No morning study",
-        eveningSubject = evening?.subject ?: "No evening study",
+        morningBlock = morningBlock,
+        eveningBlock = eveningBlock,
         focusTimerState = FocusTimerState(
             ctaLabel = when (focusSession.status) {
                 TimerStatus.RUNNING -> "Pause Deep Work"
                 TimerStatus.PAUSED -> "Resume Deep Work"
                 else -> "Enter Deep Work"
             },
-            durationLabel = formatDuration(focusSession.remainingSeconds),
+            durationLabel = formatDuration(displaySeconds),
             statusLabel = when (focusSession.status) {
-                TimerStatus.IDLE -> "Ready for ${defaultFocusDurationMinutes(dayType)} minutes of focus."
+                TimerStatus.IDLE -> {
+                    if (presetMinutes > 0) "Ready for $presetMinutes minutes of focus."
+                    else "Rest day. Focus timer is unavailable."
+                }
                 TimerStatus.RUNNING -> "Focus timer running."
                 TimerStatus.PAUSED -> "Focus timer paused."
                 TimerStatus.COMPLETED -> "Focus block complete."
             },
+            totalSeconds = totalSeconds,
             secondaryCtaLabel = if (focusSession.status == TimerStatus.RUNNING || focusSession.status == TimerStatus.PAUSED) "Cancel" else null,
             isDndEnabled = focusModeEnabled,
             isDndPermissionGranted = dndAccessGranted,
@@ -853,8 +947,101 @@ private fun List<StudyBlock>.toStudyUiState(
             },
             dndPermissionCtaLabel = if (dndAccessGranted) null else "Grant DND Access"
         ),
-        reminderText = listOfNotNull(morning?.notes, evening?.notes).joinToString(" ")
+        reminderText = reminder,
+        dayLabel = date.dayOfWeek.displayName(),
+        templateLabel = dayType.templateLabel(),
+        isFreeDay = isFreeDay,
+        tomorrowBlock = tomorrowPreview,
+        focusSessionHistory = focusSessionHistory
     )
+}
+
+private fun StudyBlock.toUiBlock(dayType: DayType, nowMinute: Int): StudyBlockUiState? {
+    if (isFreeSubject(subject)) return null
+    val duration = durationMinutesForBlock(dayType, blockType, subject)
+    if (duration <= 0) return null
+    val startMinute = when (blockType) {
+        StudyBlockType.MORNING -> 7 * 60 + 30
+        StudyBlockType.EVENING -> 20 * 60 + 45
+    }
+    val endMinute = startMinute + duration
+    val metadata = studySubjectMetadata(subject)
+    return StudyBlockUiState(
+        timeLabel = "${startMinute.toClockLabel()} - ${endMinute.toClockLabel()}",
+        subject = subject,
+        category = metadata.first,
+        difficultyLabel = metadata.second,
+        durationMinutes = duration,
+        emoji = when (blockType) {
+            StudyBlockType.MORNING -> "Morning"
+            StudyBlockType.EVENING -> "Evening"
+        },
+        isActive = nowMinute in startMinute until endMinute
+    )
+}
+
+private fun studyFocusDurationMinutes(dayType: DayType, studyBlocks: List<StudyBlock>): Int {
+    val morning = studyBlocks.firstOrNull { it.blockType == StudyBlockType.MORNING } ?: return fallbackFocusDurationMinutes(dayType)
+    val duration = durationMinutesForBlock(dayType, morning.blockType, morning.subject)
+    return if (duration > 0) duration else fallbackFocusDurationMinutes(dayType)
+}
+
+private fun fallbackFocusDurationMinutes(dayType: DayType): Int {
+    return when (dayType) {
+        DayType.CLASS_DAY -> 60
+        DayType.OFFICE_DAY -> 90
+        DayType.FRIDAY -> 0
+    }
+}
+
+private fun durationMinutesForBlock(dayType: DayType, blockType: StudyBlockType, subject: String): Int {
+    if (isFreeSubject(subject)) return 0
+    return when (blockType) {
+        StudyBlockType.MORNING -> when (dayType) {
+            DayType.CLASS_DAY -> 60
+            DayType.OFFICE_DAY -> 90
+            DayType.FRIDAY -> 0
+        }
+        StudyBlockType.EVENING -> 40
+    }
+}
+
+private fun isFreeSubject(subject: String): Boolean {
+    return subject.equals("FREE", ignoreCase = true) || subject.startsWith("FREE", ignoreCase = true)
+}
+
+private fun studySubjectMetadata(subject: String): Pair<String, String> {
+    return when (subject) {
+        "Calculus", "Linear Algebra", "Fundamental Math" -> "Major" to "Hard"
+        "Physics 1", "Physics 2", "Statistics" -> "Non-Major" to "Medium"
+        "History of Bangladesh" -> "Non-Major" to "Light"
+        "ICT" -> "Exam-Only" to "Light"
+        else -> "Non-Major" to "Medium"
+    }
+}
+
+private fun DayType.templateLabel(): String {
+    return when (this) {
+        DayType.CLASS_DAY -> "Class Day - 60-min morning block"
+        DayType.OFFICE_DAY -> "Office Day - 90-min morning block"
+        DayType.FRIDAY -> "Friday Rest Day - no study blocks"
+    }
+}
+
+private fun DayType.label(): String {
+    return when (this) {
+        DayType.CLASS_DAY -> "Class Day"
+        DayType.OFFICE_DAY -> "Office Day"
+        DayType.FRIDAY -> "Friday"
+    }
+}
+
+private fun DayOfWeek.toDayType(): DayType {
+    return when (this) {
+        DayOfWeek.SUNDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY -> DayType.CLASS_DAY
+        DayOfWeek.FRIDAY -> DayType.FRIDAY
+        else -> DayType.OFFICE_DAY
+    }
 }
 
 private const val DEFAULT_REST_SECONDS = 45
@@ -964,18 +1151,8 @@ private fun com.schedulejs.domain.WorkoutRoutineItem.idForUi(): String {
     return "${title.lowercase().replace(" ", "-")}-${prescription.lowercase().replace(" ", "")}"
 }
 
-private fun defaultFocusDurationMinutes(dayType: DayType): Int {
-    return when (dayType) {
-        DayType.CLASS_DAY -> 35
-        DayType.OFFICE_DAY -> 45
-        DayType.FRIDAY -> 30
-    }
-}
-
 private fun formatDuration(totalSeconds: Int): String {
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
     return "%02d:%02d".format(minutes, seconds)
 }
-
-private fun LocalDateTime.minuteOfDay(): Int = hour * 60 + minute

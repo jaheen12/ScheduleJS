@@ -97,17 +97,48 @@ object DemoData {
     )
 
     val study = StudyUiState(
-        morningSubject = "Linear Algebra",
-        eveningSubject = "Physics 1",
+        morningBlock = StudyBlockUiState(
+            timeLabel = "07:30 - 09:00",
+            subject = "Linear Algebra",
+            category = "Major",
+            difficultyLabel = "Hard",
+            durationMinutes = 90,
+            emoji = "Morning",
+            isActive = true
+        ),
+        eveningBlock = StudyBlockUiState(
+            timeLabel = "20:45 - 21:25",
+            subject = "Statistics",
+            category = "Non-Major",
+            difficultyLabel = "Medium",
+            durationMinutes = 40,
+            emoji = "Evening",
+            isActive = false
+        ),
         focusTimerState = FocusTimerState(
             ctaLabel = "Enter Deep Work",
-            durationLabel = "60 min",
-            statusLabel = "Ready to start a 60-minute focus block.",
+            durationLabel = "90:00",
+            statusLabel = "Ready for 90 minutes of focus.",
+            totalSeconds = 5400,
             isDndEnabled = true,
             isDndPermissionGranted = true,
             dndStatusLabel = "Focus mode will enable Do Not Disturb for the session."
         ),
-        reminderText = "Solve board questions first. Reading is not the session."
+        reminderText = "Solve board questions first. Reading is not the session.",
+        dayLabel = "Monday",
+        templateLabel = "Office Day - 90-min morning block",
+        isFreeDay = false,
+        tomorrowBlock = TomorrowStudyPreview(
+            dayLabel = "Tomorrow - Tuesday (Class Day)",
+            morningSubject = "Fundamental Math",
+            morningDuration = 60,
+            eveningSubject = "Physics 1",
+            eveningDuration = 40
+        ),
+        focusSessionHistory = FocusSessionHistory(
+            sessionsToday = 2,
+            totalMinutesToday = 130
+        )
     )
 
     val review = ReviewUiState(
