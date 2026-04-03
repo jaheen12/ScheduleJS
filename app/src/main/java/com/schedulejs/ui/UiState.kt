@@ -50,7 +50,8 @@ data class SettingsUiState(
     val editableTemplates: List<EditableTemplateUiState>,
     val permissionEducationCards: List<PermissionEducationCardUiState>,
     val validationMessages: List<String>,
-    val saveStatus: String?
+    val saveStatus: String?,
+    val isSaving: Boolean = false
 )
 
 data class TaskSnapshot(

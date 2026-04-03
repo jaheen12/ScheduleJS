@@ -125,6 +125,7 @@ class ScheduleJsViewModel(
     private var reviewDraft = ReviewEntryDraft()
     private var reviewSaveStatus: String? = null
     private var settingsSaveStatus: String? = null
+    private var isSavingSettings: Boolean = false
     private var settingsValidationMessages: List<String> = emptyList()
     private var reviewValidationMessages: List<String> = emptyList()
     private var routineSetProgress: Map<String, Int> = emptyMap()
@@ -249,12 +250,14 @@ class ScheduleJsViewModel(
     fun updateNotificationLeadTime(label: String) {
         notificationLeadTimeSelection = NotificationLeadTime.entries.firstOrNull { it.displayLabel == label }
             ?: notificationLeadTimeSelection
+        settingsValidationMessages = emptyList()
         settingsSaveStatus = null
         syncSettingsStateOnly()
     }
 
     fun updateTransitAlerts(enabled: Boolean) {
         transitAlertsEnabledSelection = enabled
+        settingsValidationMessages = emptyList()
         settingsSaveStatus = null
         syncSettingsStateOnly()
     }
@@ -263,6 +266,7 @@ class ScheduleJsViewModel(
         editableTemplates = editableTemplates.map { template ->
             if (template.id == templateId) template.copy(wakeUpTime = value) else template
         }
+        settingsValidationMessages = emptyList()
         settingsSaveStatus = null
         syncSettingsStateOnly()
     }
@@ -282,14 +286,20 @@ class ScheduleJsViewModel(
                 }
             )
         }
+        settingsValidationMessages = emptyList()
         settingsSaveStatus = null
         syncSettingsStateOnly()
     }
 
     fun saveSettings() {
         viewModelScope.launch {
+            isSavingSettings = true
+            settingsSaveStatus = null
+            syncSettingsStateOnly()
+
             val templateErrors = scheduleRepository.updateTemplates(editableTemplates)
             if (templateErrors.isNotEmpty()) {
+                isSavingSettings = false
                 settingsValidationMessages = templateErrors.map { it.message }.distinct()
                 settingsSaveStatus = null
                 syncSettingsStateOnly()
@@ -298,6 +308,7 @@ class ScheduleJsViewModel(
             settingsRepository.updateSettings(notificationLeadTimeSelection, transitAlertsEnabledSelection)
             loadedDate = null
             loadedTemplateSummaries = scheduleRepository.getTemplateSummaries().map { TemplateSummary(it.first, it.second) }
+            isSavingSettings = false
             settingsValidationMessages = emptyList()
             settingsSaveStatus = "Settings saved."
             syncUi()
@@ -574,7 +585,8 @@ class ScheduleJsViewModel(
             },
             permissionEducationCards = permissionCards,
             validationMessages = settingsValidationMessages,
-            saveStatus = settingsSaveStatus
+            saveStatus = settingsSaveStatus,
+            isSaving = isSavingSettings
         )
     }
 
@@ -725,7 +737,8 @@ class ScheduleJsViewModel(
                 editableTemplates = emptyList(),
                 permissionEducationCards = emptyList(),
                 validationMessages = emptyList(),
-                saveStatus = null
+                saveStatus = null,
+                isSaving = false
             )
         }
 
