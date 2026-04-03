@@ -41,6 +41,7 @@ import com.schedulejs.ui.viewmodel.ScheduleJsViewModel
 
 private val BottomNavTransitionDurationMs = 220
 
+@androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
 fun ScheduleJsApp() {
     val context = LocalContext.current

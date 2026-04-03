@@ -1,13 +1,11 @@
 package com.schedulejs.ui
 
-import androidx.compose.material.icons.filled.Dashboard as DashboardFilled
+import androidx.compose.material.icons.filled.Home as HomeFilled
 import androidx.compose.material.icons.filled.FitnessCenter as FitnessCenterFilled
 import androidx.compose.material.icons.filled.MenuBook as MenuBookFilled
 import androidx.compose.material.icons.filled.RateReview as RateReviewFilled
-import androidx.compose.material.icons.outlined.Dashboard as DashboardOutlined
-import androidx.compose.material.icons.outlined.FitnessCenter as FitnessCenterOutlined
+import androidx.compose.material.icons.outlined.Home as HomeOutlined
 import androidx.compose.material.icons.outlined.MenuBook as MenuBookOutlined
-import androidx.compose.material.icons.outlined.RateReview as RateReviewOutlined
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class AppScreen(
@@ -24,15 +22,15 @@ sealed class AppScreen(
     data object Dashboard : TopLevelScreen(
         route = "dashboard",
         label = "Dashboard",
-        filledIcon = DashboardFilled,
-        outlinedIcon = DashboardOutlined
+        filledIcon = HomeFilled,
+        outlinedIcon = HomeOutlined
     )
 
     data object Workout : TopLevelScreen(
         route = "workout",
         label = "Workout",
         filledIcon = FitnessCenterFilled,
-        outlinedIcon = FitnessCenterOutlined
+        outlinedIcon = FitnessCenterFilled
     )
 
     data object Study : TopLevelScreen(
@@ -46,7 +44,7 @@ sealed class AppScreen(
         route = "review",
         label = "Review",
         filledIcon = RateReviewFilled,
-        outlinedIcon = RateReviewOutlined
+        outlinedIcon = RateReviewFilled
     )
 
     data object Settings : AppScreen("settings", "Settings")

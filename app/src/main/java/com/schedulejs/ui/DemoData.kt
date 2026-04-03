@@ -143,6 +143,7 @@ object DemoData {
 
     val review = ReviewUiState(
         isUnlocked = false,
+        isPendingToday = false,
         questions = listOf(
             ReviewQuestion("What did I fully cover this week?", "Topics, chapters, repetitions"),
             ReviewQuestion("Where did I fall behind?", "Missed blocks, skipped transitions"),
