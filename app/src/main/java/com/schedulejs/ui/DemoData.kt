@@ -31,20 +31,67 @@ object DemoData {
 
     val workout = WorkoutUiState(
         dayLabel = "Today: Legs",
+        muscleGroup = "Legs",
+        purposeNote = "Strong legs improve hormone response and overall muscle gain.",
+        dayOfWeek = "Sunday",
+        weeklyStreak = 3,
+        weekDays = listOf(
+            WeeklyWorkoutDay("Sat", "\uD83D\uDCAA", isRestDay = false, isCompleted = true, isCurrent = false),
+            WeeklyWorkoutDay("Sun", "\uD83E\uDDB5", isRestDay = false, isCompleted = false, isCurrent = true),
+            WeeklyWorkoutDay("Mon", "\uD83E\uDDD8", isRestDay = false, isCompleted = false, isCurrent = false),
+            WeeklyWorkoutDay("Tue", "\u2014", isRestDay = true, isCompleted = false, isCurrent = false),
+            WeeklyWorkoutDay("Wed", "\uD83D\uDD19", isRestDay = false, isCompleted = false, isCurrent = false),
+            WeeklyWorkoutDay("Thu", "\uD83D\uDD25", isRestDay = false, isCompleted = false, isCurrent = false),
+            WeeklyWorkoutDay("Fri", "\u2014", isRestDay = true, isCompleted = false, isCurrent = false)
+        ),
         routineItems = listOf(
-            RoutineItem("Squats", "4 x 20", "Primary lower-body volume."),
-            RoutineItem("Lunges", "3 x 12 each leg", "Keep rest short."),
-            RoutineItem("Bulgarian Split Squats", "3 x 10 each leg"),
-            RoutineItem("Wall Sit", "3 x 40 sec", "Finish with control.")
+            RoutineItem(
+                id = "squats",
+                title = "Squats",
+                prescription = "4 x 20",
+                totalSets = 4,
+                repsOrDuration = "20 reps",
+                setsCompleted = 1,
+                note = "Primary lower-body volume."
+            ),
+            RoutineItem(
+                id = "lunges",
+                title = "Lunges",
+                prescription = "3 x 12 each leg",
+                totalSets = 3,
+                repsOrDuration = "12 each leg",
+                setsCompleted = 0,
+                note = "Keep rest short."
+            ),
+            RoutineItem(
+                id = "bulgarian-split-squats",
+                title = "Bulgarian Split Squats",
+                prescription = "3 x 10 each leg",
+                totalSets = 3,
+                repsOrDuration = "10 each leg",
+                setsCompleted = 0
+            ),
+            RoutineItem(
+                id = "wall-sit",
+                title = "Wall Sit",
+                prescription = "3 x 40 sec",
+                totalSets = 3,
+                repsOrDuration = "40 sec",
+                setsCompleted = 0,
+                note = "Finish with control."
+            )
         ),
         bellyRoutineState = BellyRoutineState(
             ctaLabel = "Start 5-Min Belly Routine",
             steps = listOf(
-                "Plank - 1 min",
-                "Stomach vacuum - 10 reps",
-                "Leg raises - 15 reps",
-                "Cobra stretch - 30 sec"
-            )
+                BellyRoutineStep("Plank", StepType.TIMED, durationSeconds = 60),
+                BellyRoutineStep("Stomach vacuum", StepType.REPS, targetReps = 10),
+                BellyRoutineStep("Leg raises", StepType.REPS, targetReps = 15),
+                BellyRoutineStep("Cobra stretch", StepType.TIMED, durationSeconds = 30)
+            ),
+            currentStepIndex = 0,
+            secondsRemaining = 60,
+            repsCompleted = 0
         ),
         isWorkoutComplete = false
     )

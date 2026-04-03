@@ -47,6 +47,7 @@ import com.schedulejs.services.TimeEngine
 import com.schedulejs.services.ToneRoutineCuePlayer
 import com.schedulejs.services.toClockLabel
 import com.schedulejs.ui.BellyRoutineState
+import com.schedulejs.ui.BellyRoutineStep
 import com.schedulejs.ui.DashboardUiState
 import com.schedulejs.ui.EditableTaskUiState
 import com.schedulejs.ui.EditableTemplateUiState
@@ -58,13 +59,16 @@ import com.schedulejs.ui.ReviewQuestion
 import com.schedulejs.ui.ReviewUiState
 import com.schedulejs.ui.RoutineItem
 import com.schedulejs.ui.SettingsUiState
+import com.schedulejs.ui.StepType
 import com.schedulejs.ui.StudyUiState
 import com.schedulejs.ui.TaskSnapshot
 import com.schedulejs.ui.TemplateSummary
 import com.schedulejs.ui.TimelineItem
 import com.schedulejs.ui.TimelineItemState
+import com.schedulejs.ui.WeeklyWorkoutDay
 import com.schedulejs.ui.WorkoutUiState
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -119,6 +123,12 @@ class ScheduleJsViewModel(
     private var settingsSaveStatus: String? = null
     private var settingsValidationMessages: List<String> = emptyList()
     private var reviewValidationMessages: List<String> = emptyList()
+    private var routineSetProgress: Map<String, Int> = emptyMap()
+    private var routineRestTimers: Map<String, Int> = emptyMap()
+    private var bellyStepRepProgress: Int = 0
+    private var weeklyWorkoutDaysCache: List<WeeklyWorkoutDay> = emptyList()
+    private var weeklyWorkoutStreakCache: Int = 0
+    private var isWorkoutWeekDirty: Boolean = true
 
     init {
         observeSettings()
@@ -284,8 +294,48 @@ class ScheduleJsViewModel(
             val date = LocalDate.now(clock)
             val isComplete = interactiveStateRepository.isWorkoutComplete(date)
             interactiveStateRepository.setWorkoutComplete(date, !isComplete)
+            isWorkoutWeekDirty = true
             syncUi()
         }
+    }
+
+    fun checkWorkoutSet(itemId: String, setNumber: Int) {
+        viewModelScope.launch {
+            val workout = loadedWorkout ?: return@launch
+            val item = workout.routineItems.firstOrNull { it.idForUi() == itemId } ?: return@launch
+            val totalSets = parsePrescription(item.prescription).first
+            if (totalSets <= 0) return@launch
+
+            val normalizedSet = setNumber.coerceIn(0, totalSets)
+            val previous = routineSetProgress[itemId] ?: 0
+            routineSetProgress = routineSetProgress + (itemId to normalizedSet)
+            if (normalizedSet > previous && normalizedSet in 1 until totalSets) {
+                routineRestTimers = routineRestTimers + (itemId to DEFAULT_REST_SECONDS)
+            } else if (normalizedSet >= totalSets) {
+                routineRestTimers = routineRestTimers - itemId
+            }
+
+            val allDone = workout.routineItems.all { routine ->
+                val key = routine.idForUi()
+                val sets = parsePrescription(routine.prescription).first
+                (routineSetProgress[key] ?: 0) >= sets
+            }
+            if (allDone) {
+                interactiveStateRepository.setWorkoutComplete(LocalDate.now(clock), true)
+                isWorkoutWeekDirty = true
+            }
+            syncUi()
+        }
+    }
+
+    fun onBellyRoutineRepTap() {
+        val state = _workoutState.value.bellyRoutineState
+        val step = state.steps.getOrNull(state.currentStepIndex) ?: return
+        if (step.type != StepType.REPS || step.targetReps <= 0) return
+        bellyStepRepProgress = (bellyStepRepProgress + 1).coerceAtMost(step.targetReps)
+        _workoutState.value = _workoutState.value.copy(
+            bellyRoutineState = state.copy(repsCompleted = bellyStepRepProgress)
+        )
     }
 
     fun updateReviewAnswer(field: ReviewField, value: String) {
@@ -320,10 +370,42 @@ class ScheduleJsViewModel(
     private fun startTicker() {
         viewModelScope.launch {
             while (isActive) {
+                tickWorkoutRestTimers()
                 syncUi(clock.millis())
                 delay(1_000)
             }
         }
+    }
+
+    private fun tickWorkoutRestTimers() {
+        if (routineRestTimers.isEmpty()) return
+        routineRestTimers = routineRestTimers
+            .mapValues { (_, value) -> (value - 1).coerceAtLeast(0) }
+            .filterValues { it > 0 }
+    }
+
+    private suspend fun refreshWorkoutWeekIfNeeded(today: LocalDate) {
+        if (!isWorkoutWeekDirty && weeklyWorkoutDaysCache.isNotEmpty()) return
+        val start = startOfWorkoutWeek(today)
+        val weekData = buildList {
+            repeat(7) { offset ->
+                val date = start.plusDays(offset.toLong())
+                val plan = workoutRepository.getWorkoutForDate(date)
+                val completed = interactiveStateRepository.isWorkoutComplete(date)
+                add(
+                    WeeklyWorkoutDay(
+                        dayLabel = date.dayOfWeek.shortLabel(),
+                        muscleGroupEmoji = muscleEmoji(plan.dayLabel),
+                        isRestDay = plan.isRestDay,
+                        isCompleted = completed,
+                        isCurrent = date == today
+                    )
+                )
+            }
+        }
+        weeklyWorkoutDaysCache = weekData
+        weeklyWorkoutStreakCache = computeWeeklyStreak(weekData)
+        isWorkoutWeekDirty = false
     }
 
     private suspend fun syncUi(nowEpochMillis: Long = clock.millis()) {
@@ -334,11 +416,25 @@ class ScheduleJsViewModel(
         val workout = loadedWorkout ?: return
         val focusSession = focusTimerController.getState()
         val bellySession = routineTimerController.getState()
+        val bellySteps = workout.bellyRoutineSteps.map(::parseBellyRoutineStep)
+        val activeStep = bellySteps.getOrNull(bellySession.currentStepIndex)
+        if (activeStep?.type != StepType.REPS) {
+            bellyStepRepProgress = 0
+        } else if (bellyStepRepProgress > activeStep.targetReps) {
+            bellyStepRepProgress = activeStep.targetReps
+        }
         val review = reviewRepository.getReviewState(now)
         val workoutComplete = interactiveStateRepository.isWorkoutComplete(now.toLocalDate())
+        if (workoutComplete && routineSetProgress.isEmpty()) {
+            routineSetProgress = workout.routineItems.associate { item ->
+                val sets = parsePrescription(item.prescription).first
+                item.idForUi() to sets
+            }
+        }
         val dashboardSnapshot = timeEngine.getDashboardSnapshot(schedule, now)
         val liveContent = com.schedulejs.services.DashboardLiveContentFactory.create(schedule, dashboardSnapshot, now)
         val dndAccessGranted = focusModeController.hasNotificationPolicyAccess()
+        refreshWorkoutWeekIfNeeded(now.toLocalDate())
         if (focusSession.status == TimerStatus.RUNNING || focusSession.status == TimerStatus.PAUSED) {
             focusModeEnabled = focusSession.enableDnd
         } else if (!dndAccessGranted) {
@@ -346,7 +442,15 @@ class ScheduleJsViewModel(
         }
 
         _dashboardState.value = schedule.toDashboardUiState(liveContent, now)
-        _workoutState.value = workout.toWorkoutUiState(bellySession, workoutComplete)
+        _workoutState.value = workout.toWorkoutUiState(
+            session = bellySession,
+            isWorkoutComplete = workoutComplete,
+            setProgress = routineSetProgress,
+            restTimers = routineRestTimers,
+            weekDays = weeklyWorkoutDaysCache,
+            weeklyStreak = weeklyWorkoutStreakCache,
+            repsCompleted = bellyStepRepProgress
+        )
         _studyState.value = loadedStudyBlocks.toStudyUiState(
             dayType = schedule.dayType,
             focusSession = focusSession,
@@ -377,6 +481,10 @@ class ScheduleJsViewModel(
         loadedDate = date
         loadedSchedule = scheduleRepository.getTodaySchedule(date)
         loadedWorkout = workoutRepository.getWorkoutForDate(date)
+        routineSetProgress = emptyMap()
+        routineRestTimers = emptyMap()
+        bellyStepRepProgress = 0
+        isWorkoutWeekDirty = true
         loadedStudyBlocks = studyRepository.getStudyBlocksForDate(date)
         loadedTemplateSummaries = scheduleRepository.getTemplateSummaries().map {
             TemplateSummary(it.first, it.second)
@@ -517,10 +625,18 @@ class ScheduleJsViewModel(
         private fun loadingWorkoutState(): WorkoutUiState {
             return WorkoutUiState(
                 dayLabel = "Loading workout",
+                muscleGroup = "Loading",
+                purposeNote = "Loading workout note.",
+                dayOfWeek = "Today",
+                weeklyStreak = 0,
+                weekDays = emptyList(),
                 routineItems = emptyList(),
                 bellyRoutineState = BellyRoutineState(
                     ctaLabel = "Start Belly Routine",
                     steps = emptyList(),
+                    currentStepIndex = 0,
+                    secondsRemaining = 0,
+                    repsCompleted = 0,
                     statusLabel = "Loading timer state."
                 ),
                 isWorkoutComplete = false
@@ -645,7 +761,12 @@ private fun TodaySchedule.toDashboardUiState(
 
 private fun WorkoutPlan.toWorkoutUiState(
     session: BellyRoutineSession,
-    isWorkoutComplete: Boolean
+    isWorkoutComplete: Boolean,
+    setProgress: Map<String, Int>,
+    restTimers: Map<String, Int>,
+    weekDays: List<WeeklyWorkoutDay>,
+    weeklyStreak: Int,
+    repsCompleted: Int
 ): WorkoutUiState {
     val statusLabel = when (session.status) {
         TimerStatus.IDLE -> "Five-minute core reset ready."
@@ -653,17 +774,41 @@ private fun WorkoutPlan.toWorkoutUiState(
         TimerStatus.PAUSED -> "Paused with ${session.remainingSeconds}s remaining."
         TimerStatus.COMPLETED -> "Belly routine complete."
     }
+    val bellySteps = bellyRoutineSteps.map(::parseBellyRoutineStep)
+    val currentStepIndex = session.currentStepIndex.coerceIn(0, (bellySteps.lastIndex).coerceAtLeast(0))
     return WorkoutUiState(
         dayLabel = dayLabel,
-        routineItems = routineItems.map { RoutineItem(it.title, it.prescription, it.note) },
+        muscleGroup = dayLabel.substringAfter("Today:", dayLabel).trim(),
+        purposeNote = purposeForWorkoutDay(dayOfWeek),
+        dayOfWeek = dayOfWeek.displayName(),
+        weeklyStreak = weeklyStreak,
+        weekDays = weekDays,
+        routineItems = routineItems.map { item ->
+            val parsed = parsePrescription(item.prescription)
+            val id = item.idForUi()
+            RoutineItem(
+                id = id,
+                title = item.title,
+                prescription = item.prescription,
+                totalSets = parsed.first,
+                repsOrDuration = parsed.second,
+                setsCompleted = (setProgress[id] ?: 0).coerceAtMost(parsed.first),
+                restSecondsLeft = restTimers[id] ?: 0,
+                note = item.note
+            )
+        },
         bellyRoutineState = BellyRoutineState(
             ctaLabel = when (session.status) {
                 TimerStatus.RUNNING -> "Pause Belly Routine"
                 TimerStatus.PAUSED -> "Resume Belly Routine"
                 else -> "Start Belly Routine"
             },
-            steps = bellyRoutineSteps,
+            steps = bellySteps,
+            currentStepIndex = currentStepIndex,
+            secondsRemaining = session.stepRemainingSeconds,
+            repsCompleted = repsCompleted,
             statusLabel = statusLabel,
+            isTimerVisible = session.status == TimerStatus.RUNNING || session.status == TimerStatus.PAUSED,
             secondaryCtaLabel = if (session.status == TimerStatus.RUNNING || session.status == TimerStatus.PAUSED) {
                 "Cancel"
             } else {
@@ -710,6 +855,113 @@ private fun List<StudyBlock>.toStudyUiState(
         ),
         reminderText = listOfNotNull(morning?.notes, evening?.notes).joinToString(" ")
     )
+}
+
+private const val DEFAULT_REST_SECONDS = 45
+
+private fun parseBellyRoutineStep(raw: String): BellyRoutineStep {
+    val parts = raw.split("-").map { it.trim() }
+    val name = parts.firstOrNull().orEmpty().ifBlank { "Step" }
+    val descriptor = parts.getOrNull(1).orEmpty().lowercase()
+    return when {
+        descriptor.contains("rep") -> {
+            val reps = Regex("""(\d+)""").find(descriptor)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+            BellyRoutineStep(name = name, type = StepType.REPS, targetReps = reps)
+        }
+        else -> {
+            val duration = parseDurationToSeconds(descriptor)
+            BellyRoutineStep(name = name, type = StepType.TIMED, durationSeconds = duration)
+        }
+    }
+}
+
+private fun parsePrescription(prescription: String): Pair<Int, String> {
+    val normalized = prescription.trim().lowercase()
+    val setsFirst = Regex("""(\d+)\s*x\s*([a-z0-9\s-]+)""").find(normalized)
+    if (setsFirst != null) {
+        val sets = setsFirst.groupValues[1].toIntOrNull() ?: 1
+        val payload = setsFirst.groupValues[2].trim().ifBlank { "max" }
+        val repsOrDuration = if (payload.matches(Regex("""\d+"""))) "$payload reps" else payload
+        return sets to repsOrDuration
+    }
+
+    val setsLast = Regex("""([a-z0-9\s-]+)\s*x\s*(\d+)""").find(normalized)
+    if (setsLast != null) {
+        val payload = setsLast.groupValues[1].trim().ifBlank { "max" }
+        val sets = setsLast.groupValues[2].toIntOrNull() ?: 1
+        val repsOrDuration = if (payload.matches(Regex("""\d+"""))) "$payload reps" else payload
+        return sets to repsOrDuration
+    }
+
+    val fallback = if (normalized.matches(Regex("""\d+"""))) "$normalized reps" else normalized
+    return 1 to fallback
+}
+
+private fun parseDurationToSeconds(label: String): Int {
+    val value = Regex("""(\d+)""").find(label)?.groupValues?.get(1)?.toIntOrNull() ?: return 0
+    return when {
+        label.contains("min") -> value * 60
+        else -> value
+    }
+}
+
+private fun purposeForWorkoutDay(day: DayOfWeek): String {
+    return when (day) {
+        DayOfWeek.SATURDAY -> "Build chest while tightening the stomach."
+        DayOfWeek.SUNDAY -> "Strong legs improve hormone response and overall muscle gain."
+        DayOfWeek.MONDAY -> "This widens shoulders and tightens the waist."
+        DayOfWeek.TUESDAY -> "Posture and mobility reset to stay fresh for later sessions."
+        DayOfWeek.WEDNESDAY -> "Back training is key for the V-shape."
+        DayOfWeek.THURSDAY -> "This day boosts metabolism and overall conditioning."
+        DayOfWeek.FRIDAY -> "Light stretching only to recover for the next cycle."
+    }
+}
+
+private fun DayOfWeek.displayName(): String {
+    return name.lowercase().replaceFirstChar { it.uppercase() }
+}
+
+private fun DayOfWeek.shortLabel(): String {
+    return name.take(3).lowercase().replaceFirstChar { it.uppercase() }
+}
+
+private fun startOfWorkoutWeek(today: LocalDate): LocalDate {
+    var start = today
+    while (start.dayOfWeek != DayOfWeek.SATURDAY) {
+        start = start.minusDays(1)
+    }
+    return start
+}
+
+private fun muscleEmoji(dayLabel: String): String {
+    return when {
+        dayLabel.contains("Chest", ignoreCase = true) -> "\uD83D\uDCAA"
+        dayLabel.contains("Leg", ignoreCase = true) -> "\uD83E\uDDB5"
+        dayLabel.contains("Shoulder", ignoreCase = true) -> "\uD83E\uDDD8"
+        dayLabel.contains("Back", ignoreCase = true) -> "\uD83D\uDD19"
+        dayLabel.contains("Full Body", ignoreCase = true) -> "\uD83D\uDD25"
+        else -> ""
+    }
+}
+
+private fun computeWeeklyStreak(days: List<WeeklyWorkoutDay>): Int {
+    var streak = 0
+    days.forEach { day ->
+        if (day.isCurrent) {
+            if (day.isRestDay || day.isCompleted) streak += 1 else streak = 0
+            return streak
+        }
+        if (day.isRestDay || day.isCompleted) {
+            streak += 1
+        } else {
+            streak = 0
+        }
+    }
+    return streak
+}
+
+private fun com.schedulejs.domain.WorkoutRoutineItem.idForUi(): String {
+    return "${title.lowercase().replace(" ", "-")}-${prescription.lowercase().replace(" ", "")}"
 }
 
 private fun defaultFocusDurationMinutes(dayType: DayType): Int {

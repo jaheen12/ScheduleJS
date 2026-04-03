@@ -88,7 +88,9 @@ fun ScheduleJsApp() {
                         state = workoutState,
                         onBellyRoutineAction = viewModel::onBellyRoutineAction,
                         onCancelBellyRoutine = viewModel::cancelBellyRoutine,
-                        onToggleWorkoutComplete = viewModel::toggleWorkoutComplete
+                        onToggleWorkoutComplete = viewModel::toggleWorkoutComplete,
+                        onSetChecked = viewModel::checkWorkoutSet,
+                        onBellyRoutineRepTap = viewModel::onBellyRoutineRepTap
                     )
                 }
                 composable(AppScreen.Study.route) {

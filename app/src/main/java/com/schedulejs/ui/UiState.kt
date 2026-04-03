@@ -11,6 +11,11 @@ data class DashboardUiState(
 
 data class WorkoutUiState(
     val dayLabel: String,
+    val muscleGroup: String,
+    val purposeNote: String,
+    val dayOfWeek: String,
+    val weeklyStreak: Int,
+    val weekDays: List<WeeklyWorkoutDay>,
     val routineItems: List<RoutineItem>,
     val bellyRoutineState: BellyRoutineState,
     val isWorkoutComplete: Boolean
@@ -64,16 +69,45 @@ enum class TimelineItemState {
 }
 
 data class RoutineItem(
+    val id: String,
     val title: String,
     val prescription: String,
+    val totalSets: Int,
+    val repsOrDuration: String,
+    val setsCompleted: Int,
+    val restSecondsLeft: Int = 0,
     val note: String = ""
 )
 
 data class BellyRoutineState(
     val ctaLabel: String,
-    val steps: List<String>,
+    val steps: List<BellyRoutineStep>,
+    val currentStepIndex: Int,
+    val secondsRemaining: Int,
+    val repsCompleted: Int,
     val statusLabel: String = "",
+    val isTimerVisible: Boolean = false,
     val secondaryCtaLabel: String? = null
+)
+
+data class BellyRoutineStep(
+    val name: String,
+    val type: StepType,
+    val durationSeconds: Int = 0,
+    val targetReps: Int = 0
+)
+
+enum class StepType {
+    TIMED,
+    REPS
+}
+
+data class WeeklyWorkoutDay(
+    val dayLabel: String,
+    val muscleGroupEmoji: String,
+    val isRestDay: Boolean,
+    val isCompleted: Boolean,
+    val isCurrent: Boolean
 )
 
 data class FocusTimerState(
