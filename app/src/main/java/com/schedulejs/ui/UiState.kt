@@ -24,13 +24,20 @@ data class StudyUiState(
 data class ReviewUiState(
     val isUnlocked: Boolean,
     val questions: List<ReviewQuestion>,
-    val historySummaries: List<ReviewHistoryItem>
+    val historySummaries: List<ReviewHistoryItem>,
+    val answerDraft: ReviewAnswerDraft,
+    val validationMessages: List<String>,
+    val saveStatus: String?
 )
 
 data class SettingsUiState(
     val notificationLeadTime: String,
     val transitAlertsEnabled: Boolean,
-    val templateSummaries: List<TemplateSummary>
+    val templateSummaries: List<TemplateSummary>,
+    val editableTemplates: List<EditableTemplateUiState>,
+    val permissionEducationCards: List<PermissionEducationCardUiState>,
+    val validationMessages: List<String>,
+    val saveStatus: String?
 )
 
 data class TaskSnapshot(
@@ -89,4 +96,36 @@ data class ReviewHistoryItem(
 data class TemplateSummary(
     val title: String,
     val summary: String
+)
+
+data class EditableTemplateUiState(
+    val templateId: Long,
+    val title: String,
+    val dayTypeLabel: String,
+    val wakeUpTime: String,
+    val tasks: List<EditableTaskUiState>
+)
+
+data class EditableTaskUiState(
+    val taskId: Long,
+    val title: String,
+    val startTime: String,
+    val endTime: String,
+    val details: String
+)
+
+data class PermissionEducationCardUiState(
+    val id: String,
+    val title: String,
+    val description: String,
+    val actionLabel: String,
+    val dismissLabel: String = "Dismiss"
+)
+
+data class ReviewAnswerDraft(
+    val covered: String,
+    val behind: String,
+    val tuition: String,
+    val energy: String,
+    val adjustment: String
 )

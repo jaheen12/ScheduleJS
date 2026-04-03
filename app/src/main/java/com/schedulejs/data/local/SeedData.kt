@@ -44,7 +44,11 @@ class SeedData(private val database: ScheduleDatabase) {
             database.appSettingsDao().upsert(
                 AppSettingsEntity(
                     notificationLeadTime = NotificationLeadTime.FIVE_MINUTES.name,
-                    transitAlertsEnabled = true
+                    transitAlertsEnabled = true,
+                    notificationsEducationDismissed = false,
+                    exactAlarmEducationDismissed = false,
+                    dndEducationDismissed = false,
+                    batteryOptimizationEducationDismissed = false
                 )
             )
         }

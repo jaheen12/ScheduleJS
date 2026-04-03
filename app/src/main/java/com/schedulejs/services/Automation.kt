@@ -47,7 +47,9 @@ object ScheduleAutomationCoordinator {
         ContextCompat.startForegroundService(appContext, serviceIntent)
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            ReminderScheduler(appContext).scheduleDailyReminders()
+            val scheduler = ReminderScheduler(appContext)
+            scheduler.scheduleDailyReminders()
+            scheduler.scheduleDailyReminders(LocalDate.now().plusDays(1))
             ScheduleHomeWidgetUpdater.updateAll(appContext)
         }
     }
@@ -103,13 +105,15 @@ class ReminderScheduler(
     private val database by lazy { ScheduleDatabase.getInstance(context) }
     private val seedData by lazy { SeedData(database) }
     private val scheduleRepository by lazy { OfflineScheduleRepository(database, seedData) }
-    private val settingsRepository by lazy { OfflineSettingsRepository(database, seedData) }
+    private val settingsRepository by lazy { OfflineSettingsRepository(database, seedData, context) }
 
     suspend fun scheduleDailyReminders(targetDate: LocalDate = LocalDate.now(clock)) {
         val schedule = scheduleRepository.getTodaySchedule(targetDate)
         val settings = settingsRepository.observeSettings().first()
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val now = LocalDateTime.now(clock)
+
+        cancelScheduledReminders(alarmManager, schedule)
 
         schedule.tasks.forEachIndexed { index, task ->
             val triggerTime = triggerDateTime(task = task, schedule = schedule, leadTime = settings.notificationLeadTime)
@@ -131,6 +135,25 @@ class ReminderScheduler(
 
         scheduleNightlyChecklistAlarm(alarmManager, now, targetDate)
         scheduleResyncAlarm(alarmManager, targetDate.plusDays(1))
+    }
+
+    private fun cancelScheduledReminders(
+        alarmManager: AlarmManager,
+        schedule: TodaySchedule
+    ) {
+        schedule.tasks.forEachIndexed { index, task ->
+            alarmManager.cancel(
+                ReminderReceiver.pendingIntent(
+                    context = context,
+                    requestCode = reminderRequestCode(schedule.date, index),
+                    title = task.title,
+                    detail = task.details,
+                    isTransitAlert = task.category == TaskCategory.TRANSIT
+                )
+            )
+        }
+        alarmManager.cancel(NightChecklistReceiver.pendingIntent(context))
+        alarmManager.cancel(SystemEventReceiver.resyncPendingIntent(context))
     }
 
     private fun scheduleNightlyChecklistAlarm(

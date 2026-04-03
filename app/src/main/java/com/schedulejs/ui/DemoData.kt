@@ -74,7 +74,10 @@ object DemoData {
             ReviewHistoryItem("Mar 21", "Good workout consistency, evening study too passive."),
             ReviewHistoryItem("Mar 14", "Transit timing held, tuition prep slipped twice."),
             ReviewHistoryItem("Mar 07", "Friday review completed, Saturday rest worked well.")
-        )
+        ),
+        answerDraft = ReviewAnswerDraft("", "", "", "", ""),
+        validationMessages = emptyList(),
+        saveStatus = null
     )
 
     val settings = SettingsUiState(
@@ -84,6 +87,10 @@ object DemoData {
             TemplateSummary("Class Day", "College -> 35-minute sprint -> office -> tuition"),
             TemplateSummary("Office Day", "Morning study -> office -> tuition -> evening reset"),
             TemplateSummary("Friday", "Office flow with review unlock at 15:30")
-        )
+        ),
+        editableTemplates = emptyList(),
+        permissionEducationCards = emptyList(),
+        validationMessages = emptyList(),
+        saveStatus = null
     )
 }

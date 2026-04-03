@@ -103,10 +103,31 @@ fun ScheduleJsApp() {
                     )
                 }
                 composable(AppScreen.Review.route) {
-                    ReviewScreen(reviewState)
+                    ReviewScreen(
+                        state = reviewState,
+                        onAnswerChange = viewModel::updateReviewAnswer,
+                        onSave = viewModel::saveReview
+                    )
                 }
                 composable(AppScreen.Settings.route) {
-                    SettingsScreen(settingsState)
+                    SettingsScreen(
+                        state = settingsState,
+                        onLeadTimeSelected = viewModel::updateNotificationLeadTime,
+                        onTransitAlertsChanged = viewModel::updateTransitAlerts,
+                        onWakeUpTimeChanged = viewModel::updateTemplateWakeUpTime,
+                        onTaskFieldChanged = viewModel::updateTaskField,
+                        onSave = viewModel::saveSettings,
+                        onPermissionAction = { cardId ->
+                            val intent = when (cardId) {
+                                "notifications" -> viewModel.buildNotificationPermissionIntent()
+                                "exact_alarms" -> viewModel.buildExactAlarmPermissionIntent()
+                                "dnd" -> viewModel.buildDndPermissionIntent()
+                                else -> viewModel.buildBatteryOptimizationIntent()
+                            }
+                            context.startActivity(intent)
+                        },
+                        onPermissionDismiss = viewModel::dismissPermissionEducation
+                    )
                 }
             }
         }

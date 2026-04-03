@@ -104,6 +104,11 @@ data class BellyRoutineSession(
 
 data class ReviewLog(
     val completedAt: LocalDate,
+    val covered: String,
+    val behind: String,
+    val tuition: String,
+    val energy: String,
+    val adjustment: String,
     val summary: String
 )
 
@@ -115,11 +120,50 @@ data class WeeklyReviewState(
 
 data class AppSettings(
     val notificationLeadTime: NotificationLeadTime,
-    val transitAlertsEnabled: Boolean
+    val transitAlertsEnabled: Boolean,
+    val permissionEducation: PermissionEducationState
 )
 
 data class TodaySchedule(
     val date: LocalDate,
     val dayType: DayType,
     val tasks: List<ScheduleTask>
+)
+
+data class PermissionEducationState(
+    val shouldShowNotificationsCard: Boolean,
+    val shouldShowExactAlarmsCard: Boolean,
+    val shouldShowDndCard: Boolean,
+    val shouldShowBatteryOptimizationCard: Boolean
+)
+
+data class TemplateTaskDraft(
+    val id: Long,
+    val title: String,
+    val startTime: String,
+    val endTime: String,
+    val category: TaskCategory,
+    val details: String,
+    val sortOrder: Int
+)
+
+data class DayTemplateDraft(
+    val id: Long,
+    val title: String,
+    val dayType: DayType,
+    val wakeUpTime: String,
+    val tasks: List<TemplateTaskDraft>
+)
+
+data class ReviewEntryDraft(
+    val covered: String = "",
+    val behind: String = "",
+    val tuition: String = "",
+    val energy: String = "",
+    val adjustment: String = ""
+)
+
+data class ValidationError(
+    val field: String,
+    val message: String
 )

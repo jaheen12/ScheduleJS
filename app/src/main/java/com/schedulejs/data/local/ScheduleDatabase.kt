@@ -20,7 +20,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         BellyRoutineStateEntity::class,
         NightlyChecklistEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class ScheduleDatabase : RoomDatabase() {
@@ -97,6 +97,35 @@ abstract class ScheduleDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                    ALTER TABLE `app_settings`
+                    ADD COLUMN `notificationsEducationDismissed` INTEGER NOT NULL DEFAULT 0
+                    """.trimIndent()
+                )
+                database.execSQL(
+                    """
+                    ALTER TABLE `app_settings`
+                    ADD COLUMN `exactAlarmEducationDismissed` INTEGER NOT NULL DEFAULT 0
+                    """.trimIndent()
+                )
+                database.execSQL(
+                    """
+                    ALTER TABLE `app_settings`
+                    ADD COLUMN `dndEducationDismissed` INTEGER NOT NULL DEFAULT 0
+                    """.trimIndent()
+                )
+                database.execSQL(
+                    """
+                    ALTER TABLE `app_settings`
+                    ADD COLUMN `batteryOptimizationEducationDismissed` INTEGER NOT NULL DEFAULT 0
+                    """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): ScheduleDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
@@ -106,6 +135,7 @@ abstract class ScheduleDatabase : RoomDatabase() {
                 )
                     .addMigrations(MIGRATION_1_2)
                     .addMigrations(MIGRATION_2_3)
+                    .addMigrations(MIGRATION_3_4)
                     .build()
                     .also { instance = it }
             }

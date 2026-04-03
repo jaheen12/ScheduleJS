@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -19,6 +20,9 @@ interface DayTemplateDao {
 
     @Query("SELECT * FROM day_templates ORDER BY id")
     suspend fun getAll(): List<DayTemplateEntity>
+
+    @Update
+    suspend fun update(template: DayTemplateEntity)
 }
 
 @Dao
@@ -28,6 +32,9 @@ interface TemplateTaskDao {
 
     @Query("SELECT * FROM template_tasks WHERE templateId = :templateId ORDER BY sortOrder")
     suspend fun getForTemplate(templateId: Long): List<TemplateTaskEntity>
+
+    @Query("DELETE FROM template_tasks WHERE templateId = :templateId")
+    suspend fun deleteForTemplate(templateId: Long)
 }
 
 @Dao
@@ -52,6 +59,9 @@ interface WorkoutRotationDao {
 interface WeeklyReviewLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(logs: List<WeeklyReviewLogEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(log: WeeklyReviewLogEntity)
 
     @Query("SELECT * FROM weekly_review_logs ORDER BY reviewDate DESC")
     suspend fun getAll(): List<WeeklyReviewLogEntity>

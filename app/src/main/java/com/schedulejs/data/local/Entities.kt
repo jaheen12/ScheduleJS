@@ -73,7 +73,11 @@ data class WeeklyReviewLogEntity(
 data class AppSettingsEntity(
     @PrimaryKey val id: Int = 1,
     val notificationLeadTime: String,
-    val transitAlertsEnabled: Boolean
+    val transitAlertsEnabled: Boolean,
+    val notificationsEducationDismissed: Boolean,
+    val exactAlarmEducationDismissed: Boolean,
+    val dndEducationDismissed: Boolean,
+    val batteryOptimizationEducationDismissed: Boolean
 )
 
 @Entity(tableName = "daily_progress")
