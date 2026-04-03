@@ -1,6 +1,7 @@
 package com.schedulejs.ui
 
 data class DashboardUiState(
+    val dateLabel: String,
     val currentTask: TaskSnapshot,
     val nextTask: TaskSnapshot,
     val progressPercent: Float,

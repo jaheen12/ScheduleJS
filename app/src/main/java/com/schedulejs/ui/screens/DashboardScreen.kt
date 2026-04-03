@@ -26,6 +26,12 @@ fun DashboardScreen(state: DashboardUiState) {
         subtitle = "Phase 3 keeps the HUD live against device time and active timers."
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(
+                text = state.dateLabel,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
             SectionCard("Current Block") {
                 Text(
                     text = state.currentTask.title,

@@ -335,6 +335,7 @@ class ScheduleJsViewModel(
         val review = reviewRepository.getReviewState(now)
         val workoutComplete = interactiveStateRepository.isWorkoutComplete(now.toLocalDate())
         val dashboardSnapshot = timeEngine.getDashboardSnapshot(schedule, now)
+        val liveContent = com.schedulejs.services.DashboardLiveContentFactory.create(schedule, dashboardSnapshot, now)
         val dndAccessGranted = focusModeController.hasNotificationPolicyAccess()
         if (focusSession.status == TimerStatus.RUNNING || focusSession.status == TimerStatus.PAUSED) {
             focusModeEnabled = focusSession.enableDnd
@@ -342,7 +343,7 @@ class ScheduleJsViewModel(
             focusModeEnabled = false
         }
 
-        _dashboardState.value = schedule.toDashboardUiState(dashboardSnapshot, now)
+        _dashboardState.value = schedule.toDashboardUiState(liveContent, now)
         _workoutState.value = workout.toWorkoutUiState(bellySession, workoutComplete)
         _studyState.value = loadedStudyBlocks.toStudyUiState(
             dayType = schedule.dayType,
@@ -503,6 +504,7 @@ class ScheduleJsViewModel(
 
         private fun loadingDashboardState(): DashboardUiState {
             return DashboardUiState(
+                dateLabel = "Loading...",
                 currentTask = TaskSnapshot("Loading schedule", "--", "Resolving today's template."),
                 nextTask = TaskSnapshot("Loading", "--", "Preparing next block."),
                 progressPercent = 0f,
@@ -598,23 +600,25 @@ private fun ReviewEntryDraft.toUi(): ReviewAnswerDraft {
 }
 
 private fun TodaySchedule.toDashboardUiState(
-    snapshot: DashboardSnapshot,
+    liveContent: com.schedulejs.services.DashboardLiveContent,
     now: LocalDateTime
 ): DashboardUiState {
-    val currentTask = snapshot.currentTask
-    val nextTask = snapshot.nextTask
+    val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("EEEE, MMMM d")
+    val timeFormatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+
     return DashboardUiState(
+        dateLabel = "${now.format(dateFormatter)} • ${now.format(timeFormatter)}",
         currentTask = TaskSnapshot(
-            title = currentTask?.title ?: "No active block",
-            timeLabel = currentTask?.let { "${it.startMinuteOfDay.toClockLabel()} - ${it.endMinuteOfDay.toClockLabel()}" } ?: "--",
-            subtitle = currentTask?.details ?: "Take the next useful action."
+            title = liveContent.currentTitle,
+            timeLabel = liveContent.currentTimeLabel,
+            subtitle = liveContent.currentSubtitle
         ),
         nextTask = TaskSnapshot(
-            title = nextTask?.title ?: "Nothing queued",
-            timeLabel = nextTask?.let { "${it.startMinuteOfDay.toClockLabel()} - ${it.endMinuteOfDay.toClockLabel()}" } ?: "--",
-            subtitle = nextTask?.details ?: "End of today's plan."
+            title = liveContent.nextTitle,
+            timeLabel = liveContent.nextTimeLabel,
+            subtitle = liveContent.nextSubtitle
         ),
-        progressPercent = snapshot.progressPercent,
+        progressPercent = liveContent.progressPercent,
         timelineItems = tasks.map { task ->
             val state = when {
                 now.minuteOfDay() >= task.endMinuteOfDay -> TimelineItemState.PAST

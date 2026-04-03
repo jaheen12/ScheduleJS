@@ -1,1 +1,32 @@
+# Gradle build artifacts
+build/
+.gradle/
+*.gradle
 
+# Android Studio / IntelliJ files
+.idea/
+*.iml
+*.iws
+*.ipr
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+cmake-build-*/
+.navigation/
+
+# Log files
+*.log
+
+# Keystore files
+*.jks
+*.keystore
+
+# macOS DS_Store
+.DS_Store
+
+# Google services
+# google-services.json
+
+# Local env files
+.env

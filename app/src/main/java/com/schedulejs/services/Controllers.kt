@@ -40,8 +40,13 @@ interface RoutineTimerController {
 class DefaultTimeEngine : TimeEngine {
     override fun getDashboardSnapshot(schedule: TodaySchedule, now: LocalDateTime): DashboardSnapshot {
         val nowMinute = now.hour * 60 + now.minute
-        val currentTask = schedule.tasks.firstOrNull { nowMinute in it.startMinuteOfDay until it.endMinuteOfDay }
+        var currentTask = schedule.tasks.firstOrNull { nowMinute in it.startMinuteOfDay until it.endMinuteOfDay }
         val nextTask = schedule.tasks.firstOrNull { it.startMinuteOfDay > nowMinute }
+        
+        if (currentTask == null) {
+            currentTask = fallbackForGap(schedule.tasks, nowMinute)
+        }
+
         val progressPercent = if (currentTask == null) {
             if (schedule.tasks.isNotEmpty() && nowMinute >= schedule.tasks.last().endMinuteOfDay) 1f else 0f
         } else {
@@ -49,16 +54,29 @@ class DefaultTimeEngine : TimeEngine {
             ((nowMinute - currentTask.startMinuteOfDay).toFloat() / duration.toFloat()).coerceIn(0f, 1f)
         }
         return DashboardSnapshot(
-            currentTask = currentTask ?: fallbackTask(schedule.tasks, nowMinute),
+            currentTask = currentTask,
             nextTask = nextTask,
             progressPercent = progressPercent
         )
     }
 
-    private fun fallbackTask(tasks: List<ScheduleTask>, nowMinute: Int): ScheduleTask? {
+    private fun fallbackForGap(tasks: List<ScheduleTask>, nowMinute: Int): ScheduleTask? {
+        val nextTask = tasks.firstOrNull { it.startMinuteOfDay > nowMinute }
+        val prevTask = tasks.lastOrNull { it.endMinuteOfDay <= nowMinute }
         return when {
             tasks.isEmpty() -> null
             nowMinute < tasks.first().startMinuteOfDay -> null
+            nextTask != null && prevTask != null -> {
+                ScheduleTask(
+                    id = -1,
+                    title = "Buffer Window",
+                    startMinuteOfDay = prevTask.endMinuteOfDay,
+                    endMinuteOfDay = nextTask.startMinuteOfDay,
+                    category = com.schedulejs.domain.TaskCategory.ROUTINE,
+                    details = "Transition or break time.",
+                    dayType = prevTask.dayType
+                )
+            }
             else -> tasks.last()
         }
     }
