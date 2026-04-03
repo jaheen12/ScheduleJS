@@ -16,69 +16,69 @@ object DemoData {
         ),
         progressPercent = 0.68f,
         timelineItems = listOf(
-            TimelineItem("06:30", "Wake + Belly Routine", "Water, wake-up, 5-minute core reset.", TimelineItemState.PAST, "Routine"),
-            TimelineItem("06:40 - 07:20", "Main Workout", "Leg day block for class-day energy.", TimelineItemState.PAST, "Workout"),
-            TimelineItem("07:30 - 08:30", "Morning Study", "NU board questions only, no passive reading.", TimelineItemState.PAST, "Study"),
-            TimelineItem("09:15", "Transit to College", "Leave by bicycle for the 09:45 class buffer.", TimelineItemState.PAST, "Transit"),
+            TimelineItem("06:30", "Wake Up & Hydrate", "Water and 5-minute belly routine.", TimelineItemState.PAST, "Routine"),
+            TimelineItem("06:40 - 07:20", "Morning Workout", "Daily focus from the workout rotation table.", TimelineItemState.PAST, "Workout"),
+            TimelineItem("07:30 - 08:30", "Morning Deep Work", "Major subject from the study rotation.", TimelineItemState.PAST, "Study"),
+            TimelineItem("09:15", "Bicycle to College", "Leave by bicycle for the 09:45 class buffer.", TimelineItemState.PAST, "Transit"),
             TimelineItem("12:45 - 13:40", "College Return + Sprint", "Ride home, lunch, switch gear, leave again.", TimelineItemState.PAST, "College"),
             TimelineItem("14:00 - 17:40", "Office", "Focused work block at Visiwave.", TimelineItemState.CURRENT, "Office"),
             TimelineItem("18:07", "Transit to Tuition", "Fast reset at home, then depart.", TimelineItemState.UPCOMING, "Transit"),
             TimelineItem("19:30 - 20:10", "Tuition Prep", "Non-negotiable prep window.", TimelineItemState.UPCOMING, "Tuition"),
             TimelineItem("20:45 - 21:25", "Evening Study", "Lighter subjects and recap work.", TimelineItemState.UPCOMING, "Study"),
-            TimelineItem("21:25 - 23:00", "Prepare Tomorrow", "Clothes, lunch, bag, then free time.", TimelineItemState.UPCOMING, "Prep")
+            TimelineItem("21:25 - 23:00", "Free Time & Prep", "Relax, clothes ready, and lunch prepped.", TimelineItemState.UPCOMING, "Prep")
         )
     )
 
     val workout = WorkoutUiState(
-        dayLabel = "Today: Legs",
-        muscleGroup = "Legs",
-        purposeNote = "Strong legs improve hormone response and overall muscle gain.",
+        dayLabel = "Today: Back + Core",
+        muscleGroup = "Back + Core",
+        purposeNote = "Back + core day to reinforce posture and pulling strength.",
         dayOfWeek = "Sunday",
         weeklyStreak = 3,
         weekDays = listOf(
-            WeeklyWorkoutDay("Sat", "\uD83D\uDCAA", isRestDay = false, isCompleted = true, isCurrent = false),
-            WeeklyWorkoutDay("Sun", "\uD83E\uDDB5", isRestDay = false, isCompleted = false, isCurrent = true),
-            WeeklyWorkoutDay("Mon", "\uD83E\uDDD8", isRestDay = false, isCompleted = false, isCurrent = false),
-            WeeklyWorkoutDay("Tue", "\u2014", isRestDay = true, isCompleted = false, isCurrent = false),
-            WeeklyWorkoutDay("Wed", "\uD83D\uDD19", isRestDay = false, isCompleted = false, isCurrent = false),
-            WeeklyWorkoutDay("Thu", "\uD83D\uDD25", isRestDay = false, isCompleted = false, isCurrent = false),
-            WeeklyWorkoutDay("Fri", "\u2014", isRestDay = true, isCompleted = false, isCurrent = false)
+            WeeklyWorkoutDay("Sun", "\uD83D\uDD19", isRestDay = false, isCompleted = false, isCurrent = true),
+            WeeklyWorkoutDay("Mon", "\uD83D\uDCAA", isRestDay = false, isCompleted = false, isCurrent = false),
+            WeeklyWorkoutDay("Tue", "\uD83E\uDDB5", isRestDay = false, isCompleted = false, isCurrent = false),
+            WeeklyWorkoutDay("Wed", "\uD83E\uDDD8", isRestDay = false, isCompleted = false, isCurrent = false),
+            WeeklyWorkoutDay("Thu", "\uD83E\uDDD6", isRestDay = false, isCompleted = false, isCurrent = false),
+            WeeklyWorkoutDay("Fri", "\u2014", isRestDay = true, isCompleted = false, isCurrent = false),
+            WeeklyWorkoutDay("Sat", "\uD83D\uDD25", isRestDay = false, isCompleted = true, isCurrent = false)
         ),
         routineItems = listOf(
             RoutineItem(
-                id = "squats",
-                title = "Squats",
-                prescription = "4 x 20",
-                totalSets = 4,
-                repsOrDuration = "20 reps",
+                id = "pullups",
+                title = "Pull-ups / Inverted rows",
+                prescription = "5 x max or 4 x 10",
+                totalSets = 5,
+                repsOrDuration = "max or 4 x 10",
                 setsCompleted = 1,
-                note = "Primary lower-body volume."
+                note = "Use pull-ups if a bar is available."
             ),
             RoutineItem(
-                id = "lunges",
-                title = "Lunges",
-                prescription = "3 x 12 each leg",
-                totalSets = 3,
-                repsOrDuration = "12 each leg",
+                id = "superman-hold",
+                title = "Superman hold",
+                prescription = "4 x 30 sec",
+                totalSets = 4,
+                repsOrDuration = "30 sec",
                 setsCompleted = 0,
-                note = "Keep rest short."
+                note = "Controlled back extension."
             ),
             RoutineItem(
-                id = "bulgarian-split-squats",
-                title = "Bulgarian Split Squats",
-                prescription = "3 x 10 each leg",
+                id = "reverse-snow-angels",
+                title = "Reverse snow angels",
+                prescription = "3 x 12",
                 totalSets = 3,
-                repsOrDuration = "10 each leg",
+                repsOrDuration = "12 reps",
                 setsCompleted = 0
             ),
             RoutineItem(
-                id = "wall-sit",
-                title = "Wall Sit",
-                prescription = "3 x 40 sec",
+                id = "leg-raises",
+                title = "Leg raises",
+                prescription = "3 x 12",
                 totalSets = 3,
-                repsOrDuration = "40 sec",
+                repsOrDuration = "12 reps",
                 setsCompleted = 0,
-                note = "Finish with control."
+                note = "Core finisher."
             )
         ),
         bellyRoutineState = BellyRoutineState(
@@ -135,7 +135,7 @@ object DemoData {
         templateSummaries = listOf(
             TemplateSummary("Class Day", "College -> 35-minute sprint -> office -> tuition"),
             TemplateSummary("Office Day", "Morning study -> office -> tuition -> evening reset"),
-            TemplateSummary("Friday", "Office flow with review unlock at 15:30")
+            TemplateSummary("Friday", "Recovery day -> weekly review -> light prep")
         ),
         editableTemplates = emptyList(),
         permissionEducationCards = emptyList(),

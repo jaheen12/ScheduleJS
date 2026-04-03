@@ -73,14 +73,37 @@ class OfflineScheduleRepository(
         seedData.seedIfNeeded()
         val dayType = date.toDayType()
         val template = requireNotNull(database.dayTemplateDao().getByDayType(dayType.name))
+        val studyBlocks = database.studyRotationDao().getForDay(date.dayOfWeek.value)
+        val morningStudySubject = studyBlocks.firstOrNull { it.blockType == StudyBlockType.MORNING.name }?.subject
+        val eveningStudySubject = studyBlocks.firstOrNull { it.blockType == StudyBlockType.EVENING.name }?.subject
+        val workoutFocus = database.workoutRotationDao().getForDay(date.dayOfWeek.value)
+            .firstOrNull()
+            ?.dayLabel
+            ?.removePrefix("Today:")
+            ?.trim()
         val tasks = database.templateTaskDao().getForTemplate(template.id).map { entity ->
+            val details = when (entity.title) {
+                "Morning Workout" -> {
+                    if (workoutFocus.isNullOrBlank()) entity.details
+                    else "Today's focus: $workoutFocus. Open Workout for full routine details."
+                }
+                "Morning Deep Work" -> {
+                    if (morningStudySubject.isNullOrBlank()) entity.details
+                    else "Today's morning subject: $morningStudySubject."
+                }
+                "Evening Study" -> {
+                    if (eveningStudySubject.isNullOrBlank()) entity.details
+                    else "Today's evening subject: $eveningStudySubject."
+                }
+                else -> entity.details
+            }
             ScheduleTask(
                 id = entity.id,
                 title = entity.title,
                 startMinuteOfDay = entity.startTime.toMinuteOfDay(),
                 endMinuteOfDay = entity.endTime.toMinuteOfDay(),
                 category = TaskCategory.valueOf(entity.category),
-                details = entity.details,
+                details = details,
                 dayType = dayType
             )
         }
@@ -98,7 +121,7 @@ class OfflineScheduleRepository(
             val summary = when (DayType.valueOf(template.dayType)) {
                 DayType.CLASS_DAY -> "College -> 35-minute sprint -> office -> tuition"
                 DayType.OFFICE_DAY -> "Morning study -> office -> tuition -> evening reset"
-                DayType.FRIDAY -> "Office flow with review unlock at 15:30"
+                DayType.FRIDAY -> "Recovery day -> weekly review -> light prep"
             }
             template.title to "$summary (${tasks.size} blocks)"
         }

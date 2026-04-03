@@ -26,6 +26,7 @@ import com.schedulejs.receivers.ReminderReceiver
 import com.schedulejs.receivers.SystemEventReceiver
 import com.schedulejs.widgets.ScheduleHomeWidgetUpdater
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -112,8 +113,13 @@ class ReminderScheduler(
         val settings = settingsRepository.observeSettings().first()
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val now = LocalDateTime.now(clock)
+        val isToday = targetDate == now.toLocalDate()
 
-        cancelScheduledReminders(alarmManager, schedule)
+        cancelScheduledReminders(
+            alarmManager = alarmManager,
+            schedule = schedule,
+            cancelGlobalAlarms = isToday
+        )
 
         schedule.tasks.forEachIndexed { index, task ->
             val triggerTime = triggerDateTime(task = task, schedule = schedule, leadTime = settings.notificationLeadTime)
@@ -133,13 +139,16 @@ class ReminderScheduler(
             )
         }
 
-        scheduleNightlyChecklistAlarm(alarmManager, now, targetDate)
-        scheduleResyncAlarm(alarmManager, targetDate.plusDays(1))
+        if (isToday) {
+            scheduleNightlyChecklistAlarm(alarmManager, now)
+            scheduleResyncAlarm(alarmManager, targetDate.plusDays(1))
+        }
     }
 
     private fun cancelScheduledReminders(
         alarmManager: AlarmManager,
-        schedule: TodaySchedule
+        schedule: TodaySchedule,
+        cancelGlobalAlarms: Boolean
     ) {
         schedule.tasks.forEachIndexed { index, task ->
             alarmManager.cancel(
@@ -152,19 +161,22 @@ class ReminderScheduler(
                 )
             )
         }
-        alarmManager.cancel(NightChecklistReceiver.pendingIntent(context))
-        alarmManager.cancel(SystemEventReceiver.resyncPendingIntent(context))
+        if (cancelGlobalAlarms) {
+            alarmManager.cancel(NightChecklistReceiver.pendingIntent(context))
+            alarmManager.cancel(SystemEventReceiver.resyncPendingIntent(context))
+        }
     }
 
     private fun scheduleNightlyChecklistAlarm(
         alarmManager: AlarmManager,
-        now: LocalDateTime,
-        date: LocalDate
+        now: LocalDateTime
     ) {
-        val checklistDate = if (now.toLocalDate() == date && now.toLocalTime() >= LocalTime.of(21, 25)) {
-            date.plusDays(1)
-        } else {
-            date
+        var checklistDate = now.toLocalDate()
+        if (now.toLocalTime() >= LocalTime.of(21, 25)) {
+            checklistDate = checklistDate.plusDays(1)
+        }
+        while (checklistDate.dayOfWeek == DayOfWeek.FRIDAY) {
+            checklistDate = checklistDate.plusDays(1)
         }
         val triggerAt = checklistDate.atTime(LocalTime.of(21, 25))
             .atZone(ZoneId.systemDefault())

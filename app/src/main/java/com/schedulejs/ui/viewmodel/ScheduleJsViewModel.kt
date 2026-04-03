@@ -907,13 +907,13 @@ private fun parseDurationToSeconds(label: String): Int {
 
 private fun purposeForWorkoutDay(day: DayOfWeek): String {
     return when (day) {
-        DayOfWeek.SATURDAY -> "Build chest while tightening the stomach."
-        DayOfWeek.SUNDAY -> "Strong legs improve hormone response and overall muscle gain."
-        DayOfWeek.MONDAY -> "This widens shoulders and tightens the waist."
-        DayOfWeek.TUESDAY -> "Posture and mobility reset to stay fresh for later sessions."
-        DayOfWeek.WEDNESDAY -> "Back training is key for the V-shape."
-        DayOfWeek.THURSDAY -> "This day boosts metabolism and overall conditioning."
-        DayOfWeek.FRIDAY -> "Light stretching only to recover for the next cycle."
+        DayOfWeek.SUNDAY -> "Back + core day to reinforce posture and pulling strength."
+        DayOfWeek.MONDAY -> "Chest + core volume to build pressing strength."
+        DayOfWeek.TUESDAY -> "Leg strength and endurance drive full-body output."
+        DayOfWeek.WEDNESDAY -> "Shoulder stability plus core control."
+        DayOfWeek.THURSDAY -> "Posture and mobility reset to protect recovery."
+        DayOfWeek.FRIDAY -> "Total recovery day. No workout block required."
+        DayOfWeek.SATURDAY -> "Full-body session to close the week with conditioning."
     }
 }
 
@@ -927,7 +927,7 @@ private fun DayOfWeek.shortLabel(): String {
 
 private fun startOfWorkoutWeek(today: LocalDate): LocalDate {
     var start = today
-    while (start.dayOfWeek != DayOfWeek.SATURDAY) {
+    while (start.dayOfWeek != DayOfWeek.SUNDAY) {
         start = start.minusDays(1)
     }
     return start

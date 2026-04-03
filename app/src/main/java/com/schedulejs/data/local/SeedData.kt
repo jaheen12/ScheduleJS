@@ -31,7 +31,7 @@ class SeedData(private val database: ScheduleDatabase) {
                 DayTemplateEntity(
                     title = "Friday",
                     dayType = "FRIDAY",
-                    wakeUpTime = "06:30"
+                    wakeUpTime = "07:30"
                 )
             )
 
@@ -56,77 +56,78 @@ class SeedData(private val database: ScheduleDatabase) {
 
     private fun classDayTasks(templateId: Long): List<TemplateTaskEntity> {
         return listOf(
-            TemplateTaskEntity(templateId = templateId, title = "Wake + Belly Routine", startTime = "06:30", endTime = "06:40", category = "ROUTINE", details = "Drink water and complete the 5-minute belly routine.", sortOrder = 0),
-            TemplateTaskEntity(templateId = templateId, title = "Main Workout", startTime = "06:40", endTime = "07:20", category = "WORKOUT", details = "Primary bodyweight training block.", sortOrder = 1),
-            TemplateTaskEntity(templateId = templateId, title = "Cooldown", startTime = "07:20", endTime = "07:30", category = "ROUTINE", details = "Quick wipe down or cooldown before study.", sortOrder = 2),
-            TemplateTaskEntity(templateId = templateId, title = "Morning Study", startTime = "07:30", endTime = "08:30", category = "STUDY", details = "NU board questions only.", sortOrder = 3),
-            TemplateTaskEntity(templateId = templateId, title = "Breakfast + Get Ready", startTime = "08:30", endTime = "09:15", category = "MEAL", details = "Breakfast and get dressed for college.", sortOrder = 4),
-            TemplateTaskEntity(templateId = templateId, title = "Transit to College", startTime = "09:15", endTime = "09:35", category = "TRANSIT", details = "Bicycle ride with a 10-minute class buffer.", sortOrder = 5),
-            TemplateTaskEntity(templateId = templateId, title = "College", startTime = "09:35", endTime = "12:45", category = "COLLEGE", details = "Govt Azizul Haque College class block.", sortOrder = 6),
-            TemplateTaskEntity(templateId = templateId, title = "Transit Home", startTime = "12:45", endTime = "13:05", category = "TRANSIT", details = "Bicycle ride back home from college.", sortOrder = 7),
-            TemplateTaskEntity(templateId = templateId, title = "35-Minute Sprint", startTime = "13:05", endTime = "13:40", category = "PREP", details = "Lunch, face wash, gear switch, and immediate turnaround.", sortOrder = 8),
-            TemplateTaskEntity(templateId = templateId, title = "Transit to Office", startTime = "13:40", endTime = "13:55", category = "TRANSIT", details = "Bicycle departure for Visiwave.", sortOrder = 9),
-            TemplateTaskEntity(templateId = templateId, title = "Office", startTime = "14:00", endTime = "17:40", category = "OFFICE", details = "Focused work block at Visiwave.", sortOrder = 10),
-            TemplateTaskEntity(templateId = templateId, title = "Transit Home", startTime = "17:40", endTime = "17:55", category = "TRANSIT", details = "Bicycle ride home with a 12-minute reset window after arrival.", sortOrder = 11),
-            TemplateTaskEntity(templateId = templateId, title = "Tuition Transit", startTime = "18:07", endTime = "18:15", category = "TRANSIT", details = "Leave home and arrive for tuition on time.", sortOrder = 12),
-            TemplateTaskEntity(templateId = templateId, title = "Tuition", startTime = "18:15", endTime = "19:15", category = "TUITION", details = "Teaching block.", sortOrder = 13),
-            TemplateTaskEntity(templateId = templateId, title = "Transit Home", startTime = "19:15", endTime = "19:23", category = "TRANSIT", details = "Return home from tuition.", sortOrder = 14),
-            TemplateTaskEntity(templateId = templateId, title = "Tuition Prep", startTime = "19:30", endTime = "20:10", category = "PREP", details = "Non-negotiable prep window.", sortOrder = 15),
-            TemplateTaskEntity(templateId = templateId, title = "Dinner + Decompress", startTime = "20:10", endTime = "20:45", category = "MEAL", details = "Dinner and short decompression block.", sortOrder = 16),
-            TemplateTaskEntity(templateId = templateId, title = "Evening Study", startTime = "20:45", endTime = "21:25", category = "STUDY", details = "Easier subjects and recap work.", sortOrder = 17),
-            TemplateTaskEntity(templateId = templateId, title = "Prepare Tomorrow", startTime = "21:25", endTime = "23:00", category = "PREP", details = "Clothes, lunch, bag, then free time.", sortOrder = 18),
-            TemplateTaskEntity(templateId = templateId, title = "Sleep", startTime = "23:00", endTime = "23:59", category = "SLEEP", details = "Target sleep time.", sortOrder = 19)
+            TemplateTaskEntity(templateId = templateId, title = "Wake Up & Hydrate", startTime = "06:30", endTime = "06:40", category = "ROUTINE", details = "Drink one large glass of water and finish the 5-minute belly routine.", sortOrder = 0),
+            TemplateTaskEntity(templateId = templateId, title = "Morning Workout", startTime = "06:40", endTime = "07:20", category = "WORKOUT", details = "Workout screen loads today's focus from the workout rotation table.", sortOrder = 1),
+            TemplateTaskEntity(templateId = templateId, title = "Cooldown", startTime = "07:20", endTime = "07:30", category = "ROUTINE", details = "Quick wipe down and prep for deep work.", sortOrder = 2),
+            TemplateTaskEntity(templateId = templateId, title = "Morning Deep Work", startTime = "07:30", endTime = "08:30", category = "STUDY", details = "Study screen loads today's major subject from the morning rotation.", sortOrder = 3),
+            TemplateTaskEntity(templateId = templateId, title = "Breakfast & Dress", startTime = "08:30", endTime = "09:15", category = "ROUTINE", details = "Eat, dress for college, and pack the bag.", sortOrder = 4),
+            TemplateTaskEntity(templateId = templateId, title = "Bicycle to College", startTime = "09:15", endTime = "09:45", category = "TRANSIT", details = "20-minute ride with a 10-minute class buffer.", sortOrder = 5),
+            TemplateTaskEntity(templateId = templateId, title = "College Classes", startTime = "09:45", endTime = "12:45", category = "COLLEGE", details = "Govt Azizul Haque College class block.", sortOrder = 6),
+            TemplateTaskEntity(templateId = templateId, title = "Bicycle to Home", startTime = "12:45", endTime = "13:05", category = "TRANSIT", details = "Ride home after classes.", sortOrder = 7),
+            TemplateTaskEntity(templateId = templateId, title = "The 35-Min Sprint", startTime = "13:05", endTime = "13:40", category = "PREP", details = "Cold face wash, 5-minute shower, eat pre-plated lunch, and dress for office.", sortOrder = 8),
+            TemplateTaskEntity(templateId = templateId, title = "Bicycle to Office", startTime = "13:40", endTime = "14:00", category = "TRANSIT", details = "15-minute ride plus 5-minute buffer.", sortOrder = 9),
+            TemplateTaskEntity(templateId = templateId, title = "Visiwave Internship", startTime = "14:00", endTime = "17:40", category = "OFFICE", details = "Market analysis and QA work.", sortOrder = 10),
+            TemplateTaskEntity(templateId = templateId, title = "Bicycle to Home", startTime = "17:40", endTime = "17:55", category = "TRANSIT", details = "Ride back from office.", sortOrder = 11),
+            TemplateTaskEntity(templateId = templateId, title = "Pit Stop", startTime = "17:55", endTime = "18:07", category = "ROUTINE", details = "Wash face and grab tuition materials.", sortOrder = 12),
+            TemplateTaskEntity(templateId = templateId, title = "Tuition Class", startTime = "18:07", endTime = "19:23", category = "TUITION", details = "Ride to tuition, teach (18:15-19:15), then ride home.", sortOrder = 13),
+            TemplateTaskEntity(templateId = templateId, title = "Freshen Up", startTime = "19:23", endTime = "19:30", category = "ROUTINE", details = "Change clothes and drink water.", sortOrder = 14),
+            TemplateTaskEntity(templateId = templateId, title = "Tuition Prep", startTime = "19:30", endTime = "20:10", category = "PREP", details = "Plan tomorrow's Class 10 math lesson.", sortOrder = 15),
+            TemplateTaskEntity(templateId = templateId, title = "Dinner", startTime = "20:10", endTime = "20:45", category = "MEAL", details = "Eat and decompress.", sortOrder = 16),
+            TemplateTaskEntity(templateId = templateId, title = "Evening Study", startTime = "20:45", endTime = "21:25", category = "STUDY", details = "Study screen loads today's lighter subject from the evening rotation.", sortOrder = 17),
+            TemplateTaskEntity(templateId = templateId, title = "Free Time & Prep", startTime = "21:25", endTime = "23:00", category = "PREP", details = "Relax, then complete the nightly check: clothes ready and lunch prepped.", sortOrder = 18)
         )
     }
 
     private fun officeDayTasks(templateId: Long): List<TemplateTaskEntity> {
         return listOf(
-            TemplateTaskEntity(templateId = templateId, title = "Wake + Belly Routine", startTime = "06:30", endTime = "06:40", category = "ROUTINE", details = "Drink water and complete the 5-minute belly routine.", sortOrder = 0),
-            TemplateTaskEntity(templateId = templateId, title = "Main Workout", startTime = "06:40", endTime = "07:20", category = "WORKOUT", details = "Primary bodyweight training block.", sortOrder = 1),
-            TemplateTaskEntity(templateId = templateId, title = "Shower", startTime = "07:20", endTime = "07:30", category = "ROUTINE", details = "Quick shower and reset.", sortOrder = 2),
-            TemplateTaskEntity(templateId = templateId, title = "Morning Study", startTime = "07:30", endTime = "09:00", category = "STUDY", details = "Main 90-minute study block.", sortOrder = 3),
-            TemplateTaskEntity(templateId = templateId, title = "Breakfast + Get Ready", startTime = "09:00", endTime = "09:40", category = "MEAL", details = "Breakfast and departure prep.", sortOrder = 4),
-            TemplateTaskEntity(templateId = templateId, title = "Transit to Office", startTime = "09:40", endTime = "09:55", category = "TRANSIT", details = "Bicycle ride to Visiwave.", sortOrder = 5),
-            TemplateTaskEntity(templateId = templateId, title = "Office", startTime = "10:00", endTime = "17:45", category = "OFFICE", details = "Main office block.", sortOrder = 6),
-            TemplateTaskEntity(templateId = templateId, title = "Transit Home", startTime = "17:45", endTime = "18:00", category = "TRANSIT", details = "Bicycle ride home.", sortOrder = 7),
-            TemplateTaskEntity(templateId = templateId, title = "Reset Window", startTime = "18:00", endTime = "18:07", category = "ROUTINE", details = "Drop the bag and switch to tuition mode.", sortOrder = 8),
-            TemplateTaskEntity(templateId = templateId, title = "Tuition Transit", startTime = "18:07", endTime = "18:15", category = "TRANSIT", details = "Depart for tuition.", sortOrder = 9),
-            TemplateTaskEntity(templateId = templateId, title = "Tuition", startTime = "18:15", endTime = "19:15", category = "TUITION", details = "Teaching block.", sortOrder = 10),
-            TemplateTaskEntity(templateId = templateId, title = "Transit Home", startTime = "19:15", endTime = "19:23", category = "TRANSIT", details = "Return home from tuition.", sortOrder = 11),
-            TemplateTaskEntity(templateId = templateId, title = "Tuition Prep", startTime = "19:30", endTime = "20:10", category = "PREP", details = "Non-negotiable prep window.", sortOrder = 12),
-            TemplateTaskEntity(templateId = templateId, title = "Dinner + Decompress", startTime = "20:10", endTime = "20:45", category = "MEAL", details = "Dinner and decompression.", sortOrder = 13),
-            TemplateTaskEntity(templateId = templateId, title = "Evening Study", startTime = "20:45", endTime = "21:25", category = "STUDY", details = "Lighter evening study block.", sortOrder = 14),
-            TemplateTaskEntity(templateId = templateId, title = "Prepare Tomorrow", startTime = "21:25", endTime = "23:00", category = "PREP", details = "Clothes, lunch, bag, then free time.", sortOrder = 15),
-            TemplateTaskEntity(templateId = templateId, title = "Sleep", startTime = "23:00", endTime = "23:59", category = "SLEEP", details = "Target sleep time.", sortOrder = 16)
+            TemplateTaskEntity(templateId = templateId, title = "Wake Up & Hydrate", startTime = "06:30", endTime = "06:40", category = "ROUTINE", details = "Drink one large glass of water and finish the 5-minute belly routine.", sortOrder = 0),
+            TemplateTaskEntity(templateId = templateId, title = "Morning Workout", startTime = "06:40", endTime = "07:20", category = "WORKOUT", details = "Workout screen loads today's focus from the workout rotation table.", sortOrder = 1),
+            TemplateTaskEntity(templateId = templateId, title = "Shower", startTime = "07:20", endTime = "07:30", category = "ROUTINE", details = "10-minute shower.", sortOrder = 2),
+            TemplateTaskEntity(templateId = templateId, title = "Morning Deep Work", startTime = "07:30", endTime = "09:00", category = "STUDY", details = "Study screen loads today's major subject from the morning rotation.", sortOrder = 3),
+            TemplateTaskEntity(templateId = templateId, title = "Breakfast & Dress", startTime = "09:00", endTime = "09:40", category = "ROUTINE", details = "Eat, relax briefly, and dress for office.", sortOrder = 4),
+            TemplateTaskEntity(templateId = templateId, title = "Bicycle to Office", startTime = "09:40", endTime = "10:00", category = "TRANSIT", details = "15-minute ride plus 5-minute buffer.", sortOrder = 5),
+            TemplateTaskEntity(templateId = templateId, title = "Visiwave Internship", startTime = "10:00", endTime = "17:45", category = "OFFICE", details = "Python learning, QA, and market analysis.", sortOrder = 6),
+            TemplateTaskEntity(templateId = templateId, title = "Bicycle to Home", startTime = "17:45", endTime = "18:00", category = "TRANSIT", details = "Ride back from office.", sortOrder = 7),
+            TemplateTaskEntity(templateId = templateId, title = "Pit Stop", startTime = "18:00", endTime = "18:07", category = "ROUTINE", details = "Drop bag and grab tuition materials.", sortOrder = 8),
+            TemplateTaskEntity(templateId = templateId, title = "Tuition Class", startTime = "18:07", endTime = "19:23", category = "TUITION", details = "Ride to tuition, teach (18:15-19:15), then ride home.", sortOrder = 9),
+            TemplateTaskEntity(templateId = templateId, title = "Freshen Up", startTime = "19:23", endTime = "19:30", category = "ROUTINE", details = "Change clothes and drink water.", sortOrder = 10),
+            TemplateTaskEntity(templateId = templateId, title = "Tuition Prep", startTime = "19:30", endTime = "20:10", category = "PREP", details = "Plan tomorrow's Class 10 math lesson.", sortOrder = 11),
+            TemplateTaskEntity(templateId = templateId, title = "Dinner", startTime = "20:10", endTime = "20:45", category = "MEAL", details = "Eat and decompress.", sortOrder = 12),
+            TemplateTaskEntity(templateId = templateId, title = "Evening Study", startTime = "20:45", endTime = "21:25", category = "STUDY", details = "Study screen loads today's lighter subject from the evening rotation.", sortOrder = 13),
+            TemplateTaskEntity(templateId = templateId, title = "Free Time & Prep", startTime = "21:25", endTime = "23:00", category = "PREP", details = "Relax, then complete the nightly check: clothes ready and lunch prepped.", sortOrder = 14)
         )
     }
 
     private fun fridayTasks(templateId: Long): List<TemplateTaskEntity> {
-        return officeDayTasks(templateId).mapIndexed { index, task ->
-            when (index) {
-                12 -> task.copy(title = "Friday Review Prep", details = "Wrap the week and prepare for the Friday review unlock.")
-                14 -> task.copy(title = "Weekly Reflection", details = "Use the unlocked Friday review if it is after 15:30.")
-                else -> task
-            }
-        }
+        return listOf(
+            TemplateTaskEntity(templateId = templateId, title = "Relaxed Wake Up", startTime = "07:30", endTime = "08:00", category = "ROUTINE", details = "Water, 5-minute belly routine, and a light stretch.", sortOrder = 0),
+            TemplateTaskEntity(templateId = templateId, title = "Breakfast", startTime = "08:00", endTime = "08:30", category = "MEAL", details = "Relaxed breakfast pace.", sortOrder = 1),
+            TemplateTaskEntity(templateId = templateId, title = "Personal Time", startTime = "08:30", endTime = "11:30", category = "PERSONAL", details = "Laundry, room cleaning, and phone time.", sortOrder = 2),
+            TemplateTaskEntity(templateId = templateId, title = "Jumma Namaz", startTime = "11:30", endTime = "13:30", category = "ROUTINE", details = "Prep, shower, and walk to mosque.", sortOrder = 3),
+            TemplateTaskEntity(templateId = templateId, title = "Recovery", startTime = "13:30", endTime = "15:30", category = "REST", details = "Nap or complete rest.", sortOrder = 4),
+            TemplateTaskEntity(templateId = templateId, title = "Weekly System Review", startTime = "15:30", endTime = "16:30", category = "REVIEW", details = "Use the Friday review page to log energy and study gaps.", sortOrder = 5),
+            TemplateTaskEntity(templateId = templateId, title = "Free Time", startTime = "16:30", endTime = "19:30", category = "PERSONAL", details = "Zero obligations.", sortOrder = 6),
+            TemplateTaskEntity(templateId = templateId, title = "Tuition Prep", startTime = "19:30", endTime = "20:10", category = "PREP", details = "Plan Saturday's Class 10 math lesson.", sortOrder = 7),
+            TemplateTaskEntity(templateId = templateId, title = "Dinner & Free Time", startTime = "20:10", endTime = "23:00", category = "ROUTINE", details = "Dinner and full decompression.", sortOrder = 8)
+        )
     }
 
     private fun studyRotations(): List<StudyRotationEntity> {
         return listOf(
-            StudyRotationEntity(dayOfWeek = 1, blockType = "MORNING", subject = "Calculus", notes = "Solve before reading."),
-            StudyRotationEntity(dayOfWeek = 1, blockType = "EVENING", subject = "Physics 1", notes = "Light recap after tuition."),
-            StudyRotationEntity(dayOfWeek = 2, blockType = "MORNING", subject = "Chemistry", notes = "Reaction sets and recall."),
-            StudyRotationEntity(dayOfWeek = 2, blockType = "EVENING", subject = "English", notes = "Short reading and writing revision."),
-            StudyRotationEntity(dayOfWeek = 3, blockType = "MORNING", subject = "ICT", notes = "Concept checks and examples."),
-            StudyRotationEntity(dayOfWeek = 3, blockType = "EVENING", subject = "Calculus", notes = "Easier recap session."),
-            StudyRotationEntity(dayOfWeek = 4, blockType = "MORNING", subject = "Linear Algebra", notes = "Board questions first."),
-            StudyRotationEntity(dayOfWeek = 4, blockType = "EVENING", subject = "Physics 1", notes = "Recap and easier problems."),
-            StudyRotationEntity(dayOfWeek = 5, blockType = "MORNING", subject = "Weekly Review Buffer", notes = "Use this block to finish loose study ends."),
-            StudyRotationEntity(dayOfWeek = 5, blockType = "EVENING", subject = "Friday Review", notes = "Weekly reflection after unlock."),
-            StudyRotationEntity(dayOfWeek = 6, blockType = "MORNING", subject = "English", notes = "Weekend review and lighter work."),
-            StudyRotationEntity(dayOfWeek = 6, blockType = "EVENING", subject = "Rest Night", notes = "Saturday night has no study block."),
-            StudyRotationEntity(dayOfWeek = 7, blockType = "MORNING", subject = "Linear Algebra", notes = "Board-focused reps."),
-            StudyRotationEntity(dayOfWeek = 7, blockType = "EVENING", subject = "Physics 1", notes = "Keep the load lighter.")
+            StudyRotationEntity(dayOfWeek = 7, blockType = "MORNING", subject = "Calculus", notes = "60m major block."),
+            StudyRotationEntity(dayOfWeek = 7, blockType = "EVENING", subject = "History of Bangladesh", notes = "40m light block."),
+            StudyRotationEntity(dayOfWeek = 1, blockType = "MORNING", subject = "Linear Algebra", notes = "90m major block."),
+            StudyRotationEntity(dayOfWeek = 1, blockType = "EVENING", subject = "Statistics", notes = "40m light block."),
+            StudyRotationEntity(dayOfWeek = 2, blockType = "MORNING", subject = "Fundamental Math", notes = "60m major block."),
+            StudyRotationEntity(dayOfWeek = 2, blockType = "EVENING", subject = "Physics 1", notes = "40m light block."),
+            StudyRotationEntity(dayOfWeek = 3, blockType = "MORNING", subject = "Calculus", notes = "90m major block."),
+            StudyRotationEntity(dayOfWeek = 3, blockType = "EVENING", subject = "History of Bangladesh", notes = "40m light block."),
+            StudyRotationEntity(dayOfWeek = 4, blockType = "MORNING", subject = "Linear Algebra", notes = "60m major block."),
+            StudyRotationEntity(dayOfWeek = 4, blockType = "EVENING", subject = "Physics 2", notes = "40m light block."),
+            StudyRotationEntity(dayOfWeek = 5, blockType = "MORNING", subject = "FREE", notes = "No scheduled morning study on Friday."),
+            StudyRotationEntity(dayOfWeek = 5, blockType = "EVENING", subject = "FREE", notes = "No scheduled evening study on Friday."),
+            StudyRotationEntity(dayOfWeek = 6, blockType = "MORNING", subject = "Fundamental Math", notes = "90m major block."),
+            StudyRotationEntity(dayOfWeek = 6, blockType = "EVENING", subject = "FREE (Psychological Reset)", notes = "No evening study block.")
         )
     }
 
@@ -158,47 +159,45 @@ class SeedData(private val database: ScheduleDatabase) {
         }
 
         return buildList {
-            addAll(rows(6, "Today: Chest + Core", false, listOf(
-                Triple("Push-ups", "4 x 12", "Build chest volume."),
+            addAll(rows(7, "Today: Back + Core", false, listOf(
+                Triple("Pull-ups / Inverted rows", "5 x max or 4 x 10", "Choose pull-ups if a bar is available, otherwise inverted rows."),
+                Triple("Superman hold", "4 x 30 sec", "Controlled back extension."),
+                Triple("Reverse snow angels", "3 x 12", "Keep shoulders packed."),
+                Triple("Leg raises", "3 x 12", "Core finisher.")
+            )))
+            addAll(rows(1, "Today: Chest + Core", false, listOf(
+                Triple("Push-ups", "4 x 12", "Stable tempo."),
                 Triple("Decline push-ups", "3 x 10", "Feet elevated."),
-                Triple("Diamond push-ups", "3 x 8", "Keep form strict."),
-                Triple("Plank", "3 x 45 sec", "Tight core brace."),
+                Triple("Diamond push-ups", "3 x 8", "Strict form."),
+                Triple("Plank", "3 x 45 sec", "Brace hard."),
                 Triple("Leg raises", "3 x 12", "Controlled reps.")
             )))
-            addAll(rows(7, "Today: Legs", false, listOf(
-                Triple("Squats", "4 x 20", "Primary lower-body volume."),
-                Triple("Lunges", "3 x 12 each leg", "Keep rest short."),
-                Triple("Bulgarian split squats", "3 x 10 each leg", ""),
-                Triple("Wall sit", "3 x 40 sec", "Finish with control.")
+            addAll(rows(2, "Today: Legs", false, listOf(
+                Triple("Squats", "4 x 20", "Main lower-body volume."),
+                Triple("Lunges", "3 x 12 each leg", "Stay balanced."),
+                Triple("Bulgarian split squats", "3 x 10 each leg", "Controlled depth."),
+                Triple("Wall sit", "3 x 40 sec", "Hold steady.")
             )))
-            addAll(rows(1, "Today: Shoulders + Core", false, listOf(
-                Triple("Pike push-ups", "4 x 10", ""),
-                Triple("Shoulder taps", "4 x 20", ""),
-                Triple("Plank", "3 x 60 sec", ""),
-                Triple("Bicycle crunch", "3 x 20", "")
+            addAll(rows(3, "Today: Shoulders + Core", false, listOf(
+                Triple("Pike push-ups", "4 x 10", "Drive through shoulders."),
+                Triple("Shoulder taps", "4 x 20", "Keep hips stable."),
+                Triple("Plank", "3 x 60 sec", "Core stability."),
+                Triple("Bicycle crunch", "3 x 20", "Controlled pace.")
             )))
-            addAll(rows(2, "Today: Rest / Light Activity", true, listOf(
-                Triple("Dead hang", "3 x 30 sec", "Posture work."),
-                Triple("Cobra stretch", "30 sec x 3", ""),
-                Triple("Cat-cow stretch", "1 min", ""),
-                Triple("Optional walk", "20 min", "Only if energy is good.")
-            )))
-            addAll(rows(3, "Today: Back + Core", false, listOf(
-                Triple("Pull-ups", "5 x max", "Use this if a bar is available."),
-                Triple("Inverted rows under table", "4 x 10", "Fallback if no bar."),
-                Triple("Superman hold", "4 x 30 sec", ""),
-                Triple("Reverse snow angels", "3 x 12", ""),
-                Triple("Leg raises", "3 x 12", "")
-            )))
-            addAll(rows(4, "Today: Full Body", false, listOf(
-                Triple("Push-ups", "3 x 15", ""),
-                Triple("Squats", "3 x 20", ""),
-                Triple("Pike push-ups", "3 x 10", ""),
-                Triple("Plank", "3 x 45 sec", ""),
-                Triple("Jump squats", "3 x 12", "")
+            addAll(rows(4, "Today: Posture", false, listOf(
+                Triple("Dead hang", "3 x 30 sec", "Open shoulders."),
+                Triple("Cobra stretch", "3 x 30 sec", "Chest opening."),
+                Triple("Cat-cow stretch", "1 min", "Spine mobility.")
             )))
             addAll(rows(5, "Today: Rest", true, listOf(
-                Triple("Light stretching", "10-15 min", "Friday is the recovery day.")
+                Triple("Rest Day", "No workout", "Total rest. No app workout required.")
+            )))
+            addAll(rows(6, "Today: Full Body", false, listOf(
+                Triple("Push-ups", "3 x 15", "Steady pace."),
+                Triple("Squats", "3 x 20", "Full-body base."),
+                Triple("Pike push-ups", "3 x 10", "Shoulder drive."),
+                Triple("Plank", "3 x 45 sec", "Core tension."),
+                Triple("Jump squats", "3 x 12", "Power finisher.")
             )))
         }
     }
