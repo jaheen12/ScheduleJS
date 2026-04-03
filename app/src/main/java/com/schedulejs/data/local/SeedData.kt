@@ -8,8 +8,11 @@ class SeedData(private val database: ScheduleDatabase) {
     private val seedMutex = Mutex()
 
     suspend fun seedIfNeeded() {
+        if (seeded) return
         seedMutex.withLock {
+            if (seeded) return
             if (database.dayTemplateDao().count() > 0) {
+                seeded = true
                 return
             }
 
@@ -51,7 +54,13 @@ class SeedData(private val database: ScheduleDatabase) {
                     batteryOptimizationEducationDismissed = false
                 )
             )
+            seeded = true
         }
+    }
+
+    companion object {
+        @Volatile
+        private var seeded = false
     }
 
     private fun classDayTasks(templateId: Long): List<TemplateTaskEntity> {

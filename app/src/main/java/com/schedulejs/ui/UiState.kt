@@ -1,5 +1,8 @@
 package com.schedulejs.ui
 
+import androidx.compose.runtime.Stable
+
+@Stable
 data class DashboardUiState(
     val dateLabel: String,
     val dayType: String = "",
@@ -9,6 +12,7 @@ data class DashboardUiState(
     val timelineItems: List<TimelineItem>
 )
 
+@Stable
 data class WorkoutUiState(
     val dayLabel: String,
     val muscleGroup: String,
@@ -21,6 +25,7 @@ data class WorkoutUiState(
     val isWorkoutComplete: Boolean
 )
 
+@Stable
 data class StudyUiState(
     val morningBlock: StudyBlockUiState?,
     val eveningBlock: StudyBlockUiState?,
@@ -33,6 +38,7 @@ data class StudyUiState(
     val focusSessionHistory: FocusSessionHistory?
 )
 
+@Stable
 data class ReviewUiState(
     val isUnlocked: Boolean,
     val isPendingToday: Boolean,
@@ -43,6 +49,7 @@ data class ReviewUiState(
     val saveStatus: String?
 )
 
+@Stable
 data class SettingsUiState(
     val notificationLeadTime: String,
     val transitAlertsEnabled: Boolean,

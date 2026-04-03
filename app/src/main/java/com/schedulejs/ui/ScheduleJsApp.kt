@@ -15,12 +15,16 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -40,12 +44,13 @@ import com.schedulejs.ui.viewmodel.ScheduleJsViewModel
 fun ScheduleJsApp() {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val viewModel: ScheduleJsViewModel = viewModel(factory = ScheduleJsViewModel.factory(context.applicationContext))
-    val dashboardState by viewModel.dashboardState.collectAsState()
-    val workoutState by viewModel.workoutState.collectAsState()
-    val studyState by viewModel.studyState.collectAsState()
-    val reviewState by viewModel.reviewState.collectAsState()
-    val settingsState by viewModel.settingsState.collectAsState()
+    val dashboardState by viewModel.dashboardState.collectAsStateWithLifecycle()
+    val workoutState by viewModel.workoutState.collectAsStateWithLifecycle()
+    val studyState by viewModel.studyState.collectAsStateWithLifecycle()
+    val reviewState by viewModel.reviewState.collectAsStateWithLifecycle()
+    val settingsState by viewModel.settingsState.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val screens = listOf(
         AppScreen.Dashboard,
@@ -60,6 +65,18 @@ fun ScheduleJsApp() {
         ?.mapNotNull { destination -> allScreens.firstOrNull { it.route == destination.route } }
         ?.firstOrNull()
         ?: AppScreen.Dashboard
+
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshUi()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

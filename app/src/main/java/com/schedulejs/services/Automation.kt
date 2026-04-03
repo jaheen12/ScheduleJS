@@ -280,7 +280,6 @@ class PersistentStatusService : Service() {
         val content = DashboardLiveContentFactory.create(schedule, snapshot, now)
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(NOTIFICATION_ID, buildStatusNotification(content))
-        ScheduleHomeWidgetUpdater.updateAll(this, clock)
     }
 
     private fun placeholderNotification(): Notification {

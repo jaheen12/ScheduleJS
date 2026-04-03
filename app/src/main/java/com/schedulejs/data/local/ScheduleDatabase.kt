@@ -6,6 +6,10 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 @Database(
     entities = [
@@ -137,7 +141,12 @@ abstract class ScheduleDatabase : RoomDatabase() {
                     .addMigrations(MIGRATION_2_3)
                     .addMigrations(MIGRATION_3_4)
                     .build()
-                    .also { instance = it }
+                    .also { database ->
+                        instance = database
+                        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+                            SeedData(database).seedIfNeeded()
+                        }
+                    }
             }
         }
     }

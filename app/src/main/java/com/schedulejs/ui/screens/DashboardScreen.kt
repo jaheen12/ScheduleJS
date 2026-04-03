@@ -97,7 +97,10 @@ fun DashboardScreen(state: DashboardUiState) {
                 )
             }
         }
-        itemsIndexed(state.timelineItems) { index, item ->
+        itemsIndexed(
+            items = state.timelineItems,
+            key = { _, item -> "${item.timeLabel}:${item.title}:${item.state}" }
+        ) { index, item ->
             TimelineRow(
                 item = item,
                 isLast = index == state.timelineItems.lastIndex,
@@ -312,16 +315,20 @@ private fun TimelineRow(
     val lineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
     val contentAlpha = if (isPast) 0.42f else 1f
 
-    val pulse = rememberInfiniteTransition(label = "dot_${item.title}")
-    val dotAlpha by pulse.animateFloat(
-        initialValue = if (isCurrent) 0.55f else 1f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "dotAlpha"
-    )
+    val dotAlpha = if (isCurrent) {
+        val pulse = rememberInfiniteTransition(label = "dot_current")
+        pulse.animateFloat(
+            initialValue = 0.55f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(800, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "dotAlpha"
+        ).value
+    } else {
+        contentAlpha
+    }
 
     Row(
         modifier = modifier
@@ -340,7 +347,7 @@ private fun TimelineRow(
                     .padding(top = 5.dp)
                     .size(dotSize)
                     .clip(CircleShape)
-                    .background(dotColor.copy(alpha = if (isCurrent) dotAlpha else contentAlpha))
+                    .background(dotColor.copy(alpha = dotAlpha))
             )
             if (!isLast) {
                 Box(

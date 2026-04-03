@@ -75,6 +75,8 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -138,6 +140,7 @@ class ScheduleJsViewModel(
     private var focusSessionsToday: Int = 0
     private var focusMinutesToday: Int = 0
     private var lastFocusStatus: TimerStatus = TimerStatus.IDLE
+    private var tickerSeconds: Int = 0
 
     init {
         observeSettings()
@@ -198,6 +201,12 @@ class ScheduleJsViewModel(
             } else {
                 focusModeEnabled = !focusModeEnabled
             }
+            syncUi()
+        }
+    }
+
+    fun refreshUi() {
+        viewModelScope.launch {
             syncUi()
         }
     }
@@ -395,9 +404,14 @@ class ScheduleJsViewModel(
 
     private fun startTicker() {
         viewModelScope.launch {
+            syncUi()
             while (isActive) {
+                tickerSeconds += 1
                 tickWorkoutRestTimers()
-                syncUi(clock.millis())
+                syncTimerStatesOnly()
+                if (tickerSeconds % 60 == 0) {
+                    syncUi(clock.millis())
+                }
                 delay(1_000)
             }
         }
@@ -432,6 +446,61 @@ class ScheduleJsViewModel(
         weeklyWorkoutDaysCache = weekData
         weeklyWorkoutStreakCache = computeWeeklyStreak(weekData)
         isWorkoutWeekDirty = false
+    }
+
+    private suspend fun syncTimerStatesOnly(nowEpochMillis: Long = clock.millis()) {
+        val now = LocalDateTime.ofInstant(Instant.ofEpochMilli(nowEpochMillis), clock.zone)
+        if (loadedDate != now.toLocalDate() || loadedSchedule == null || loadedWorkout == null) {
+            syncUi(nowEpochMillis)
+            return
+        }
+
+        val workout = loadedWorkout ?: return
+        val schedule = loadedSchedule ?: return
+        val focusSession = focusTimerController.getState()
+        updateFocusHistory(now.toLocalDate(), focusSession)
+        val bellySession = routineTimerController.getState()
+        val bellySteps = workout.bellyRoutineSteps.map(::parseBellyRoutineStep)
+        val activeStep = bellySteps.getOrNull(bellySession.currentStepIndex)
+        if (activeStep?.type != StepType.REPS) {
+            bellyStepRepProgress = 0
+        } else if (bellyStepRepProgress > activeStep.targetReps) {
+            bellyStepRepProgress = activeStep.targetReps
+        }
+
+        val dndAccessGranted = focusModeController.hasNotificationPolicyAccess()
+        if (focusSession.status == TimerStatus.RUNNING || focusSession.status == TimerStatus.PAUSED) {
+            focusModeEnabled = focusSession.enableDnd
+        } else if (!dndAccessGranted) {
+            focusModeEnabled = false
+        }
+
+        val dashboardSnapshot = timeEngine.getDashboardSnapshot(schedule, now)
+        val liveContent = com.schedulejs.services.DashboardLiveContentFactory.create(schedule, dashboardSnapshot, now)
+        _dashboardState.value = schedule.toDashboardUiState(liveContent, now)
+
+        _workoutState.value = workout.toWorkoutUiState(
+            session = bellySession,
+            isWorkoutComplete = _workoutState.value.isWorkoutComplete,
+            setProgress = routineSetProgress,
+            restTimers = routineRestTimers,
+            weekDays = weeklyWorkoutDaysCache,
+            weeklyStreak = weeklyWorkoutStreakCache,
+            repsCompleted = bellyStepRepProgress
+        )
+        _studyState.value = loadedStudyBlocks.toStudyUiState(
+            date = now.toLocalDate(),
+            now = now,
+            dayType = schedule.dayType,
+            focusSession = focusSession,
+            focusModeEnabled = focusModeEnabled,
+            dndAccessGranted = dndAccessGranted,
+            tomorrowBlocks = loadedTomorrowStudyBlocks,
+            focusSessionHistory = FocusSessionHistory(
+                sessionsToday = focusSessionsToday,
+                totalMinutesToday = focusMinutesToday
+            )
+        )
     }
 
     private suspend fun syncUi(nowEpochMillis: Long = clock.millis()) {
@@ -514,18 +583,27 @@ class ScheduleJsViewModel(
         }
 
         loadedDate = date
-        loadedSchedule = scheduleRepository.getTodaySchedule(date)
-        loadedWorkout = workoutRepository.getWorkoutForDate(date)
         routineSetProgress = emptyMap()
         routineRestTimers = emptyMap()
         bellyStepRepProgress = 0
         isWorkoutWeekDirty = true
-        loadedStudyBlocks = studyRepository.getStudyBlocksForDate(date)
-        loadedTomorrowStudyBlocks = studyRepository.getStudyBlocksForDate(date.plusDays(1))
-        loadedTemplateSummaries = scheduleRepository.getTemplateSummaries().map {
-            TemplateSummary(it.first, it.second)
+        coroutineScope {
+            val scheduleDeferred = async { scheduleRepository.getTodaySchedule(date) }
+            val workoutDeferred = async { workoutRepository.getWorkoutForDate(date) }
+            val studyDeferred = async { studyRepository.getStudyBlocksForDate(date) }
+            val tomorrowStudyDeferred = async { studyRepository.getStudyBlocksForDate(date.plusDays(1)) }
+            val summariesDeferred = async { scheduleRepository.getTemplateSummaries() }
+            val templatesDeferred = async { scheduleRepository.getEditableTemplates() }
+
+            loadedSchedule = scheduleDeferred.await()
+            loadedWorkout = workoutDeferred.await()
+            loadedStudyBlocks = studyDeferred.await()
+            loadedTomorrowStudyBlocks = tomorrowStudyDeferred.await()
+            loadedTemplateSummaries = summariesDeferred.await().map {
+                TemplateSummary(it.first, it.second)
+            }
+            editableTemplates = templatesDeferred.await()
         }
-        editableTemplates = scheduleRepository.getEditableTemplates()
     }
 
     private fun updateFocusHistory(date: LocalDate, focusSession: FocusTimerSession) {
