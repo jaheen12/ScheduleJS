@@ -46,11 +46,7 @@ fun ScheduleJsApp() {
     val haptic = LocalHapticFeedback.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val viewModel: ScheduleJsViewModel = viewModel(factory = ScheduleJsViewModel.factory(context.applicationContext))
-    val dashboardState by viewModel.dashboardState.collectAsStateWithLifecycle()
-    val workoutState by viewModel.workoutState.collectAsStateWithLifecycle()
-    val studyState by viewModel.studyState.collectAsStateWithLifecycle()
     val reviewState by viewModel.reviewState.collectAsStateWithLifecycle()
-    val settingsState by viewModel.settingsState.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val screens = listOf(
         AppScreen.Dashboard,
@@ -145,9 +141,11 @@ fun ScheduleJsApp() {
                 startDestination = AppScreen.Dashboard.route
             ) {
                 composable(AppScreen.Dashboard.route) {
+                    val dashboardState by viewModel.dashboardState.collectAsStateWithLifecycle()
                     DashboardScreen(dashboardState)
                 }
                 composable(AppScreen.Workout.route) {
+                    val workoutState by viewModel.workoutState.collectAsStateWithLifecycle()
                     WorkoutScreen(
                         state = workoutState,
                         onBellyRoutineAction = viewModel::onBellyRoutineAction,
@@ -158,6 +156,7 @@ fun ScheduleJsApp() {
                     )
                 }
                 composable(AppScreen.Study.route) {
+                    val studyState by viewModel.studyState.collectAsStateWithLifecycle()
                     StudyScreen(
                         state = studyState,
                         onFocusTimerAction = viewModel::onFocusTimerAction,
@@ -169,13 +168,15 @@ fun ScheduleJsApp() {
                     )
                 }
                 composable(AppScreen.Review.route) {
+                    val reviewStateForScreen by viewModel.reviewState.collectAsStateWithLifecycle()
                     ReviewScreen(
-                        state = reviewState,
+                        state = reviewStateForScreen,
                         onAnswerChange = viewModel::updateReviewAnswer,
                         onSave = viewModel::saveReview
                     )
                 }
                 composable(AppScreen.Settings.route) {
+                    val settingsState by viewModel.settingsState.collectAsStateWithLifecycle()
                     SettingsScreen(
                         state = settingsState,
                         onLeadTimeSelected = viewModel::updateNotificationLeadTime,
