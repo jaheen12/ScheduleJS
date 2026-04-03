@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -38,6 +39,7 @@ import com.schedulejs.ui.screens.SettingsScreen
 import com.schedulejs.ui.screens.StudyScreen
 import com.schedulejs.ui.screens.WorkoutScreen
 import com.schedulejs.ui.viewmodel.ScheduleJsViewModel
+import kotlinx.coroutines.flow.map
 
 @androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
@@ -45,15 +47,22 @@ fun ScheduleJsApp() {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val viewModel: ScheduleJsViewModel = viewModel(factory = ScheduleJsViewModel.factory(context.applicationContext))
-    val reviewState by viewModel.reviewState.collectAsStateWithLifecycle()
+    val viewModelFactory = remember(context.applicationContext) {
+        ScheduleJsViewModel.factory(context.applicationContext)
+    }
+    val viewModel: ScheduleJsViewModel = viewModel(factory = viewModelFactory)
+    val isReviewPendingToday by remember(viewModel) {
+        viewModel.reviewState.map { it.isPendingToday }
+    }.collectAsStateWithLifecycle(initialValue = false)
     val navController = rememberNavController()
-    val screens = listOf(
+    val screens = remember {
+        listOf(
         AppScreen.Dashboard,
         AppScreen.Workout,
         AppScreen.Study,
         AppScreen.Review
-    )
+        )
+    }
     val backStackEntry = navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry.value?.destination
     val currentScreen = currentDestination
@@ -83,7 +92,9 @@ fun ScheduleJsApp() {
                     IconButton(
                         onClick = {
                             if (currentScreen.route != AppScreen.Settings.route) {
-                                navController.navigate(AppScreen.Settings.route)
+                                navController.navigate(AppScreen.Settings.route) {
+                                    launchSingleTop = true
+                                }
                             }
                         }
                     ) {
@@ -102,7 +113,7 @@ fun ScheduleJsApp() {
                     NavigationBarItem(
                         selected = selected,
                         onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             navController.navigate(screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -114,7 +125,7 @@ fun ScheduleJsApp() {
                         icon = {
                             BadgedBox(
                                 badge = {
-                                    if (screen == AppScreen.Review && reviewState.isPendingToday) {
+                                    if (screen == AppScreen.Review && isReviewPendingToday) {
                                         Badge()
                                     }
                                 }
