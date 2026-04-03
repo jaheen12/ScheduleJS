@@ -102,3 +102,12 @@ data class BellyRoutineStateEntity(
     val startedAtEpochMillis: Long?,
     val lastCueStepIndex: Int
 )
+
+@Entity(tableName = "nightly_checklists")
+data class NightlyChecklistEntity(
+    @PrimaryKey val date: String,
+    val clothesLaidOut: Boolean,
+    val lunchPrepped: Boolean,
+    val bagPacked: Boolean,
+    val completedAtEpochMillis: Long?
+)

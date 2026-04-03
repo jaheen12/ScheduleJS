@@ -17,9 +17,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         AppSettingsEntity::class,
         DailyProgressEntity::class,
         FocusTimerStateEntity::class,
-        BellyRoutineStateEntity::class
+        BellyRoutineStateEntity::class,
+        NightlyChecklistEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class ScheduleDatabase : RoomDatabase() {
@@ -32,6 +33,7 @@ abstract class ScheduleDatabase : RoomDatabase() {
     abstract fun dailyProgressDao(): DailyProgressDao
     abstract fun focusTimerDao(): FocusTimerDao
     abstract fun bellyRoutineDao(): BellyRoutineDao
+    abstract fun nightlyChecklistDao(): NightlyChecklistDao
 
     companion object {
         @Volatile
@@ -78,6 +80,23 @@ abstract class ScheduleDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `nightly_checklists` (
+                        `date` TEXT NOT NULL,
+                        `clothesLaidOut` INTEGER NOT NULL,
+                        `lunchPrepped` INTEGER NOT NULL,
+                        `bagPacked` INTEGER NOT NULL,
+                        `completedAtEpochMillis` INTEGER,
+                        PRIMARY KEY(`date`)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): ScheduleDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
@@ -86,6 +105,7 @@ abstract class ScheduleDatabase : RoomDatabase() {
                     "schedulejs.db"
                 )
                     .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_2_3)
                     .build()
                     .also { instance = it }
             }

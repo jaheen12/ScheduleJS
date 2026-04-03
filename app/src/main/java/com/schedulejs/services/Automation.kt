@@ -21,6 +21,7 @@ import com.schedulejs.data.repository.OfflineSettingsRepository
 import com.schedulejs.domain.NotificationLeadTime
 import com.schedulejs.domain.TaskCategory
 import com.schedulejs.domain.TodaySchedule
+import com.schedulejs.receivers.NightChecklistReceiver
 import com.schedulejs.receivers.ReminderReceiver
 import com.schedulejs.receivers.SystemEventReceiver
 import java.time.Clock
@@ -54,6 +55,7 @@ object NotificationChannels {
     const val STATUS_CHANNEL_ID = "schedulejs_status"
     const val REMINDERS_CHANNEL_ID = "schedulejs_reminders"
     const val TRANSIT_CHANNEL_ID = "schedulejs_transit"
+    const val CHECKLIST_CHANNEL_ID = "schedulejs_checklist"
 
     fun ensureCreated(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -79,6 +81,13 @@ object NotificationChannels {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = context.getString(R.string.channel_transit_description)
+            },
+            NotificationChannel(
+                CHECKLIST_CHANNEL_ID,
+                context.getString(R.string.channel_checklist_name),
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = context.getString(R.string.channel_checklist_description)
             }
         )
         notificationManager.createNotificationChannels(channels)
@@ -118,7 +127,29 @@ class ReminderScheduler(
             )
         }
 
+        scheduleNightlyChecklistAlarm(alarmManager, now, targetDate)
         scheduleResyncAlarm(alarmManager, targetDate.plusDays(1))
+    }
+
+    private fun scheduleNightlyChecklistAlarm(
+        alarmManager: AlarmManager,
+        now: LocalDateTime,
+        date: LocalDate
+    ) {
+        val checklistDate = if (now.toLocalDate() == date && now.toLocalTime() >= LocalTime.of(21, 25)) {
+            date.plusDays(1)
+        } else {
+            date
+        }
+        val triggerAt = checklistDate.atTime(LocalTime.of(21, 25))
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        scheduleAlarm(
+            alarmManager = alarmManager,
+            triggerAtMillis = triggerAt,
+            pendingIntent = NightChecklistReceiver.pendingIntent(context)
+        )
     }
 
     private fun scheduleResyncAlarm(alarmManager: AlarmManager, nextDate: LocalDate) {

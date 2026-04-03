@@ -98,3 +98,12 @@ interface BellyRoutineDao {
     @Query("DELETE FROM belly_routine_state WHERE id = 1")
     suspend fun clear()
 }
+
+@Dao
+interface NightlyChecklistDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(checklist: NightlyChecklistEntity)
+
+    @Query("SELECT * FROM nightly_checklists WHERE date = :date LIMIT 1")
+    suspend fun getForDate(date: String): NightlyChecklistEntity?
+}

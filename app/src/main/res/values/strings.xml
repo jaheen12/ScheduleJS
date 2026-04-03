@@ -6,7 +6,17 @@
     <string name="channel_reminders_description">Upcoming task reminders based on your daily schedule.</string>
     <string name="channel_transit_name">Transit alerts</string>
     <string name="channel_transit_description">High-priority departure alerts for tight commute windows.</string>
+    <string name="channel_checklist_name">Night checklist</string>
+    <string name="channel_checklist_description">The nightly checklist flow for preparing tomorrow.</string>
     <string name="notification_status_title">ScheduleJS live status</string>
     <string name="notification_reminder_title">Upcoming block</string>
     <string name="notification_transit_title">Transit alert</string>
+    <string name="notification_checklist_title">Prepare for Tomorrow</string>
+    <string name="notification_checklist_text">Clothes, lunch, and bag need to be ready before sleep.</string>
+    <string name="night_checklist_title">Prepare for Tomorrow</string>
+    <string name="night_checklist_subtitle">Complete all three checks before dismissing this screen.</string>
+    <string name="night_checklist_clothes">Clothes laid out</string>
+    <string name="night_checklist_lunch">Lunch prepped</string>
+    <string name="night_checklist_bag">Bag packed</string>
+    <string name="night_checklist_complete">Checklist Complete</string>
 </resources>

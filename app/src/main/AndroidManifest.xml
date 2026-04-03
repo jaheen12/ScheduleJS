@@ -23,6 +23,15 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".NightChecklistActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.ScheduleJS" />
+
         <service
             android:name=".services.PersistentStatusService"
             android:exported="false"
@@ -42,6 +51,10 @@
                 <action android:name="android.intent.action.DATE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".receivers.NightChecklistReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>
