@@ -66,10 +66,14 @@ class DefaultTimeEngine : TimeEngine {
 
 class RoomFocusTimerController(
     private val focusTimerDao: FocusTimerDao,
+    private val focusModeController: FocusModeController,
     private val clock: Clock = Clock.systemDefaultZone()
 ) : FocusTimerController {
     override suspend fun start(durationMinutes: Int, enableDnd: Boolean) {
         val totalSeconds = durationMinutes * 60
+        if (enableDnd) {
+            focusModeController.enableFocusMode()
+        }
         focusTimerDao.upsert(
             FocusTimerStateEntity(
                 totalDurationSeconds = totalSeconds,
@@ -109,6 +113,7 @@ class RoomFocusTimerController(
 
     override suspend fun cancel() {
         focusTimerDao.clear()
+        focusModeController.restorePreviousMode()
     }
 
     override suspend fun getState(): FocusTimerSession {
@@ -125,11 +130,17 @@ class RoomFocusTimerController(
                     startedAtEpochMillis = null
                 )
                 focusTimerDao.upsert(completed)
+                if (completed.enableDnd) {
+                    focusModeController.restorePreviousMode()
+                }
                 return completed.toDomain(status = TimerStatus.COMPLETED)
             }
             return entity.copy(remainingSeconds = remaining).toDomain(status = TimerStatus.RUNNING)
         }
 
+        if (entity.isCompleted && entity.enableDnd) {
+            focusModeController.restorePreviousMode()
+        }
         return when {
             entity.isCompleted -> entity.toDomain(status = TimerStatus.COMPLETED)
             entity.remainingSeconds < entity.totalDurationSeconds -> entity.toDomain(status = TimerStatus.PAUSED)

@@ -53,7 +53,10 @@ object DemoData {
         focusTimerState = FocusTimerState(
             ctaLabel = "Enter Deep Work",
             durationLabel = "60 min",
-            statusLabel = "Ready to start with DND later in Phase 4"
+            statusLabel = "Ready to start a 60-minute focus block.",
+            isDndEnabled = true,
+            isDndPermissionGranted = true,
+            dndStatusLabel = "Focus mode will enable Do Not Disturb for the session."
         ),
         reminderText = "Solve board questions first. Reading is not the session."
     )

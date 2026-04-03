@@ -69,7 +69,11 @@ data class FocusTimerState(
     val ctaLabel: String,
     val durationLabel: String,
     val statusLabel: String,
-    val secondaryCtaLabel: String? = null
+    val secondaryCtaLabel: String? = null,
+    val isDndEnabled: Boolean = false,
+    val isDndPermissionGranted: Boolean = false,
+    val dndStatusLabel: String = "",
+    val dndPermissionCtaLabel: String? = null
 )
 
 data class ReviewQuestion(

@@ -29,8 +29,8 @@ import com.schedulejs.ui.viewmodel.ScheduleJsViewModel
 
 @Composable
 fun ScheduleJsApp() {
-    val context = LocalContext.current.applicationContext
-    val viewModel: ScheduleJsViewModel = viewModel(factory = ScheduleJsViewModel.factory(context))
+    val context = LocalContext.current
+    val viewModel: ScheduleJsViewModel = viewModel(factory = ScheduleJsViewModel.factory(context.applicationContext))
     val dashboardState by viewModel.dashboardState.collectAsState()
     val workoutState by viewModel.workoutState.collectAsState()
     val studyState by viewModel.studyState.collectAsState()
@@ -95,7 +95,11 @@ fun ScheduleJsApp() {
                     StudyScreen(
                         state = studyState,
                         onFocusTimerAction = viewModel::onFocusTimerAction,
-                        onCancelFocusTimer = viewModel::cancelFocusTimer
+                        onCancelFocusTimer = viewModel::cancelFocusTimer,
+                        onToggleFocusMode = viewModel::toggleFocusMode,
+                        onRequestDndPermission = {
+                            context.startActivity(viewModel.buildDndPermissionIntent())
+                        }
                     )
                 }
                 composable(AppScreen.Review.route) {
