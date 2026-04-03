@@ -1,9 +1,11 @@
 package com.schedulejs.ui
 
 import androidx.compose.material.icons.filled.Home as HomeFilled
-import androidx.compose.material.icons.filled.FitnessCenter as FitnessCenterFilled
+import androidx.compose.material.icons.filled.Edit as EditFilled
+import androidx.compose.material.icons.filled.Favorite as FavoriteFilled
 import androidx.compose.material.icons.filled.MenuBook as MenuBookFilled
-import androidx.compose.material.icons.filled.RateReview as RateReviewFilled
+import androidx.compose.material.icons.outlined.Edit as EditOutlined
+import androidx.compose.material.icons.outlined.FavoriteBorder as FavoriteOutlined
 import androidx.compose.material.icons.outlined.Home as HomeOutlined
 import androidx.compose.material.icons.outlined.MenuBook as MenuBookOutlined
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -29,8 +31,8 @@ sealed class AppScreen(
     data object Workout : TopLevelScreen(
         route = "workout",
         label = "Workout",
-        filledIcon = FitnessCenterFilled,
-        outlinedIcon = FitnessCenterFilled
+        filledIcon = FavoriteFilled,
+        outlinedIcon = FavoriteOutlined
     )
 
     data object Study : TopLevelScreen(
@@ -43,8 +45,8 @@ sealed class AppScreen(
     data object Review : TopLevelScreen(
         route = "review",
         label = "Review",
-        filledIcon = RateReviewFilled,
-        outlinedIcon = RateReviewFilled
+        filledIcon = EditFilled,
+        outlinedIcon = EditOutlined
     )
 
     data object Settings : AppScreen("settings", "Settings")
