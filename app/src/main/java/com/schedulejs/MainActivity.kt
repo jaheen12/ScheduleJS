@@ -13,12 +13,14 @@ import com.schedulejs.ui.theme.ScheduleJsTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ScheduleAutomationCoordinator.initialize(applicationContext)
         enableEdgeToEdge()
         setContent {
             ScheduleJsTheme {
                 ScheduleJsApp()
             }
+        }
+        window.decorView.post {
+            ScheduleAutomationCoordinator.initialize(applicationContext)
         }
     }
 }

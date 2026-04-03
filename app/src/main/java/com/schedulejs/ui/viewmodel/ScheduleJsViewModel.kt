@@ -709,32 +709,52 @@ class ScheduleJsViewModel(
 
     companion object {
         fun factory(context: Context): ViewModelProvider.Factory {
+            val appContext = context.applicationContext
+            return factoryInstance ?: synchronized(this) {
+                factoryInstance ?: buildFactory(appContext).also { factoryInstance = it }
+            }
+        }
+
+        @Volatile
+        private var factoryInstance: ViewModelProvider.Factory? = null
+
+        private fun buildFactory(context: Context): ViewModelProvider.Factory {
             val database = ScheduleDatabase.getInstance(context)
             val seedData = SeedData(database)
             val clock = Clock.systemDefaultZone()
             val focusModeController = NotificationPolicyFocusModeController(context)
+            val scheduleRepository = OfflineScheduleRepository(database, seedData)
+            val workoutRepository = OfflineWorkoutRepository(database, seedData)
+            val studyRepository = OfflineStudyRepository(database, seedData)
+            val reviewRepository = OfflineReviewRepository(database, seedData)
+            val settingsRepository = OfflineSettingsRepository(database, seedData, context)
+            val interactiveStateRepository = OfflineInteractiveStateRepository(database, seedData)
+            val timeEngine = DefaultTimeEngine()
+            val focusTimerController = RoomFocusTimerController(
+                database.focusTimerDao(),
+                focusModeController,
+                clock
+            )
+            val routineTimerController = RoomRoutineTimerController(
+                database.bellyRoutineDao(),
+                ToneRoutineCuePlayer(),
+                clock
+            )
+
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     return ScheduleJsViewModel(
-                        scheduleRepository = OfflineScheduleRepository(database, seedData),
-                        workoutRepository = OfflineWorkoutRepository(database, seedData),
-                        studyRepository = OfflineStudyRepository(database, seedData),
-                        reviewRepository = OfflineReviewRepository(database, seedData),
-                        settingsRepository = OfflineSettingsRepository(database, seedData, context),
-                        interactiveStateRepository = OfflineInteractiveStateRepository(database, seedData),
-                        timeEngine = DefaultTimeEngine(),
-                        focusTimerController = RoomFocusTimerController(
-                            database.focusTimerDao(),
-                            focusModeController,
-                            clock
-                        ),
+                        scheduleRepository = scheduleRepository,
+                        workoutRepository = workoutRepository,
+                        studyRepository = studyRepository,
+                        reviewRepository = reviewRepository,
+                        settingsRepository = settingsRepository,
+                        interactiveStateRepository = interactiveStateRepository,
+                        timeEngine = timeEngine,
+                        focusTimerController = focusTimerController,
                         focusModeController = focusModeController,
-                        routineTimerController = RoomRoutineTimerController(
-                            database.bellyRoutineDao(),
-                            ToneRoutineCuePlayer(),
-                            clock
-                        ),
+                        routineTimerController = routineTimerController,
                         clock = clock
                     ) as T
                 }

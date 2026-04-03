@@ -31,6 +31,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -41,7 +42,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 object ScheduleAutomationCoordinator {
+    private val initialized = AtomicBoolean(false)
+
     fun initialize(context: Context) {
+        if (!initialized.compareAndSet(false, true)) return
         NotificationChannels.ensureCreated(context)
         val appContext = context.applicationContext
         val serviceIntent = Intent(appContext, PersistentStatusService::class.java)
