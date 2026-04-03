@@ -482,6 +482,7 @@ class ScheduleJsViewModel(
         )
         _reviewState.value = ReviewUiState(
             isUnlocked = review.isUnlocked,
+            isPendingToday = review.isUnlocked && review.history.none { it.completedAt == now.toLocalDate() },
             questions = reviewQuestions(),
             historySummaries = review.history.map {
                 ReviewHistoryItem(
@@ -707,6 +708,7 @@ class ScheduleJsViewModel(
         private fun loadingReviewState(): ReviewUiState {
             return ReviewUiState(
                 isUnlocked = false,
+                isPendingToday = false,
                 questions = reviewQuestions(),
                 historySummaries = emptyList(),
                 answerDraft = ReviewAnswerDraft("", "", "", "", ""),

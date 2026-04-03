@@ -35,6 +35,7 @@ data class StudyUiState(
 
 data class ReviewUiState(
     val isUnlocked: Boolean,
+    val isPendingToday: Boolean,
     val questions: List<ReviewQuestion>,
     val historySummaries: List<ReviewHistoryItem>,
     val answerDraft: ReviewAnswerDraft,

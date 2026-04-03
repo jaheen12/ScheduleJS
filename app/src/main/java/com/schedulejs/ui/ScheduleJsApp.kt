@@ -1,8 +1,18 @@
 package com.schedulejs.ui
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -11,7 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -27,9 +39,12 @@ import com.schedulejs.ui.screens.StudyScreen
 import com.schedulejs.ui.screens.WorkoutScreen
 import com.schedulejs.ui.viewmodel.ScheduleJsViewModel
 
+private val BottomNavTransitionDurationMs = 220
+
 @Composable
 fun ScheduleJsApp() {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val viewModel: ScheduleJsViewModel = viewModel(factory = ScheduleJsViewModel.factory(context.applicationContext))
     val dashboardState by viewModel.dashboardState.collectAsState()
     val workoutState by viewModel.workoutState.collectAsState()
@@ -41,14 +56,37 @@ fun ScheduleJsApp() {
         AppScreen.Dashboard,
         AppScreen.Workout,
         AppScreen.Study,
-        AppScreen.Review,
-        AppScreen.Settings
+        AppScreen.Review
     )
     val backStackEntry = navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry.value?.destination
+    val currentScreen = currentDestination
+        ?.hierarchy
+        ?.mapNotNull { destination -> allScreens.firstOrNull { it.route == destination.route } }
+        ?.firstOrNull()
+        ?: AppScreen.Dashboard
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            androidx.compose.material3.TopAppBar(
+                title = { Text(currentScreen.label) },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            if (currentScreen.route != AppScreen.Settings.route) {
+                                navController.navigate(AppScreen.Settings.route)
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = AppScreen.Settings.label
+                        )
+                    }
+                }
+            )
+        },
         bottomBar = {
             NavigationBar {
                 screens.forEach { screen ->
@@ -56,6 +94,7 @@ fun ScheduleJsApp() {
                     NavigationBarItem(
                         selected = selected,
                         onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             navController.navigate(screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -64,7 +103,20 @@ fun ScheduleJsApp() {
                                 restoreState = true
                             }
                         },
-                        icon = { Text(screen.shortLabel) },
+                        icon = {
+                            BadgedBox(
+                                badge = {
+                                    if (screen == AppScreen.Review && reviewState.isPendingToday) {
+                                        Badge()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = if (selected) screen.filledIcon else screen.outlinedIcon,
+                                    contentDescription = screen.label
+                                )
+                            }
+                        },
                         label = { Text(screen.label) }
                     )
                 }
@@ -78,7 +130,13 @@ fun ScheduleJsApp() {
         ) {
             NavHost(
                 navController = navController,
-                startDestination = AppScreen.Dashboard.route
+                startDestination = AppScreen.Dashboard.route,
+                enterTransition = {
+                    fadeIn(animationSpec = tween(BottomNavTransitionDurationMs, easing = LinearEasing))
+                },
+                exitTransition = {
+                    fadeOut(animationSpec = tween(BottomNavTransitionDurationMs, easing = LinearEasing))
+                }
             ) {
                 composable(AppScreen.Dashboard.route) {
                     DashboardScreen(dashboardState)
@@ -135,3 +193,11 @@ fun ScheduleJsApp() {
         }
     }
 }
+
+private val allScreens = listOf(
+    AppScreen.Dashboard,
+    AppScreen.Workout,
+    AppScreen.Study,
+    AppScreen.Review,
+    AppScreen.Settings
+)
