@@ -1,9 +1,5 @@
 package com.schedulejs.ui
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -38,8 +34,6 @@ import com.schedulejs.ui.screens.SettingsScreen
 import com.schedulejs.ui.screens.StudyScreen
 import com.schedulejs.ui.screens.WorkoutScreen
 import com.schedulejs.ui.viewmodel.ScheduleJsViewModel
-
-private val BottomNavTransitionDurationMs = 220
 
 @androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
@@ -131,13 +125,7 @@ fun ScheduleJsApp() {
         ) {
             NavHost(
                 navController = navController,
-                startDestination = AppScreen.Dashboard.route,
-                enterTransition = {
-                    fadeIn(animationSpec = tween(BottomNavTransitionDurationMs, easing = LinearEasing))
-                },
-                exitTransition = {
-                    fadeOut(animationSpec = tween(BottomNavTransitionDurationMs, easing = LinearEasing))
-                }
+                startDestination = AppScreen.Dashboard.route
             ) {
                 composable(AppScreen.Dashboard.route) {
                     DashboardScreen(dashboardState)
